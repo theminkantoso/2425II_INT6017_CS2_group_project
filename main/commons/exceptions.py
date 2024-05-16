@@ -1,3 +1,4 @@
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 from main.schemas.exceptions import ErrorSchema
@@ -58,7 +59,12 @@ class BaseError(Exception):
         if error_code is not None:
             self.error_code = error_code
 
-        self.error_data = error_data
+        self.error_data = jsonable_encoder(
+            error_data,
+            custom_encoder={
+                Exception: str,
+            },
+        )
 
     def to_response(self):
         return JSONResponse(
