@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import (
 
 from ._config import config
 
+
 T = TypeVar("T")
 P = ParamSpec("P")
 

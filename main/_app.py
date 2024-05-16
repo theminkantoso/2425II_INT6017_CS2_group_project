@@ -2,10 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from ._config import config
-from .middlewares import (
-    AccessLogMiddleware,
-    DBSessionMiddleware,
-)
+from .middlewares import AccessLogMiddleware, DBSessionMiddleware
+
 
 api_docs_enabled = config.ENVIRONMENT == "local"
 

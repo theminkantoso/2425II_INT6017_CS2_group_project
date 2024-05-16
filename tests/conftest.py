@@ -8,6 +8,7 @@ from main import app, config, db
 from main.libs.log import get_logger
 from main.models.base import BaseModel
 
+
 logger = get_logger(__name__)
 
 if config.ENVIRONMENT != "test":

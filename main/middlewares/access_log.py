@@ -12,6 +12,7 @@ import time
 import urllib.parse
 from typing import TYPE_CHECKING, TypedDict
 
+
 if TYPE_CHECKING:
     from asgiref.typing import (
         ASGI3Application,

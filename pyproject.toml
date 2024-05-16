@@ -31,6 +31,14 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
+# Same as Black.
+line-length = 88
+
+target-version = "py310"
+
+extend-exclude = ["migrations"]
+
+[tool.ruff.lint]
 select = [
     "F", # Pyflakes
     "E", # Pycodestyle
@@ -61,18 +69,17 @@ ignore = [
     "RUF012",
 ]
 
-extend-exclude = ["migrations"]
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+split-on-trailing-comma = false
+forced-separate = ["tests"]
 
-# Same as Black.
-line-length = 88
-
-target-version = "py310"
-
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 max-complexity = 10
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+"tests/*" = ["S106", "S311", "ASYNC101"]
 
 [tool.mypy]
 ignore_missing_imports = true
@@ -80,6 +87,10 @@ strict_optional = true
 follow_imports = "silent"
 check_untyped_defs = true
 plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disable_error_code = "var-annotated"
 
 [tool.coverage.run]
 source = ["main"]
