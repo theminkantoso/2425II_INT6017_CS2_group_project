@@ -8,25 +8,18 @@
 
 ## Installation
 
-### Clone the project
-
-```shell
-git clone git@github.com:ducminh-phan/fastapi-service-template.git
-cd fastapi-service-template
-```
-
 ### Set up virtual environment
-
 ```shell
-pyenv local 3.10.9
-pyenv exec python3 -m venv venv
+python -m venv venv
 source ./venv/bin/activate
 ```
 
 ### Install dependencies
 
 ```shell
+poetry config virtualenvs.in-project true
 poetry install
+poetry shell
 ```
 
 ### Setup database
