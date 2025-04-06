@@ -92,3 +92,8 @@ class Database:
 
 
 db = Database()
+
+
+async def get_db_session():
+    async with db.scope():
+        yield db.session

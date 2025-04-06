@@ -3,7 +3,7 @@ from importlib import import_module
 from ._app import app
 from ._config import config
 from ._db import db
-from .commons.error_handlers import register_error_handlers
+from main.misc.error_handlers import register_error_handlers
 
 
 def register_subpackages():
