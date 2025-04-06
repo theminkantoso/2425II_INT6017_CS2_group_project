@@ -1,4 +1,4 @@
-from main.engines.items import add_item, count_items
+from main.services.items import add_item, count_items
 
 
 async def test_log():

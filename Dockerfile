@@ -39,6 +39,11 @@ RUN poetry check
 # Install Dependencies
 RUN poetry install --no-interaction --no-cache --without dev
 
+# Install tesseract
+RUN apt-get update
+RUN apt-get -y install tesseract-ocr
+RUN apt-get -y install libtesseract-dev
+
 # Copy Application
 COPY . /app
 

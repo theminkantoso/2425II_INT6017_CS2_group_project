@@ -12,7 +12,9 @@
 ```shell
 python -m venv venv
 source ./venv/bin/activate
+(If you are using Windows, use `venv\Scripts\activate`)
 ```
+
 
 ### Install dependencies
 
@@ -21,6 +23,12 @@ poetry config virtualenvs.in-project true
 poetry install
 poetry shell
 ```
+
+### System as is scripts
+```shell
+python scripts/system_as_is.py
+```
+Remember to install tesseract before running the script.
 
 ### Setup database
 
