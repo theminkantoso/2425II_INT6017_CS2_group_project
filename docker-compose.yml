@@ -1,12 +1,24 @@
 version: '3.8'
 services:
+    gateway_service:
+        image: sa-backend-ocr
+        build:
+            context: ./gateway_service
+            dockerfile: Dockerfile
+        ports:
+            - "5000:5000"
+        env_file:
+            - ./ocr_service/.env
+        networks:
+            - sa_cs2
+
     ocr_service:
         image: sa-backend-ocr
         build:
             context: ./ocr_service
             dockerfile: Dockerfile
         ports:
-            - "5000:5000"
+            - "5001:5001"
         env_file:
             -   ./ocr_service/.env
         networks:
@@ -18,7 +30,7 @@ services:
             context: ./pdf_service
             dockerfile: Dockerfile
         ports:
-            - "5001:5001"
+            - "5002:5002"
         env_file:
             - ./pdf_service/.env
         networks:
@@ -30,7 +42,7 @@ services:
             context: ./translation_service
             dockerfile: Dockerfile
         ports:
-            - "5002:5002"
+            - "5003:5003"
         env_file:
             - ./translation_service/.env
         networks:
