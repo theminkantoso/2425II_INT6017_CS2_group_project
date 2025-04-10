@@ -48,7 +48,7 @@ RUN apt-get -y install libtesseract-dev
 COPY . /app
 
 # Run Application
-EXPOSE 5000
+EXPOSE 5002
 
 #
-CMD ["poetry", "run","uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000"]
+CMD ["poetry", "run","uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5002"]
