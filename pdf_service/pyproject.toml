@@ -22,6 +22,7 @@ APScheduler = "3.11.0"
 cryptography = "44.0.0"
 google-cloud-storage = "3.0.0"
 reportlab = "4.3.1"
+aio-pika = "9.5.5"
 
 [tool.poetry.group.dev.dependencies]
 asgiref = "^3.8.1"

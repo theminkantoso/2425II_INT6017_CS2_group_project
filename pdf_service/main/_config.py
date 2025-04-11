@@ -9,6 +9,7 @@ class Config(BaseSettings):
     LOGGING_LEVEL: int = logging.INFO
 
     SQLALCHEMY_DATABASE_URI: str
+    RABBITMQ_CONNECTION: str
     SQLALCHEMY_ENGINE_OPTIONS: dict = {}
     SQLALCHEMY_ECHO: bool = False
 

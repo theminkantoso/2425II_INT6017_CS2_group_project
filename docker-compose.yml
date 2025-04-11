@@ -8,9 +8,11 @@ services:
         ports:
             - "5000:5000"
         env_file:
-            - ./ocr_service/.env
+            - ./gateway_service/.env
         networks:
             - sa_cs2
+        depends_on:
+            - rabbitmq
 
     ocr_service:
         image: sa-backend-ocr
@@ -23,6 +25,8 @@ services:
             -   ./ocr_service/.env
         networks:
             - sa_cs2
+        depends_on:
+            - rabbitmq
 
     pdf_service:
         image: sa-backend-pdf
@@ -35,6 +39,8 @@ services:
             - ./pdf_service/.env
         networks:
             - sa_cs2
+        depends_on:
+            - rabbitmq
 
     translation_service:
         image: sa-backend-translate
@@ -47,9 +53,11 @@ services:
             - ./translation_service/.env
         networks:
             - sa_cs2
+        depends_on:
+            - rabbitmq
 
     rabbitmq:
-        image: rabbitmq:4.1-rc
+        image: rabbitmq:4.0.8-management
         networks:
             - sa_cs2
         command: bash -c "rabbitmq-plugins enable rabbitmq_management && rabbitmq-server"
