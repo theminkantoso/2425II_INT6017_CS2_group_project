@@ -8,9 +8,7 @@ class Config(BaseSettings):
     ENVIRONMENT: str = "local"
     LOGGING_LEVEL: int = logging.INFO
 
-    SQLALCHEMY_DATABASE_URI: str = (
-        "mysql+aiomysql://root:123456@127.0.0.1/fastapi_template_development"
-    )
+    SQLALCHEMY_DATABASE_URI: str
     SQLALCHEMY_ENGINE_OPTIONS: dict = {}
     SQLALCHEMY_ECHO: bool = False
 
