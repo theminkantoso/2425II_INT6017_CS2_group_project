@@ -26,7 +26,6 @@ COPY --from=poetry-base ${POETRY_VENV} ${POETRY_VENV}
 
 # Add Poetry to PATH
 ENV PATH="${PATH}:${POETRY_VENV}/bin"
-ENV GOOGLE_APPLICATION_CREDENTIALS=./credentials/fraud-detection-uni-abacdf07f6af.json
 
 WORKDIR /app
 
@@ -51,4 +50,4 @@ COPY . /app
 EXPOSE 5001
 
 #
-CMD ["poetry", "run","uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5001"]
+CMD ["poetry", "run", "python", "./main/run.py"]

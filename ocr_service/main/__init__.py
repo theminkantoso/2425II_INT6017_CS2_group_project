@@ -1,7 +1,6 @@
 from importlib import import_module
 
 from ._app import app
-from ._config import config
 from ._db import db
 from main.misc.error_handlers import register_error_handlers
 

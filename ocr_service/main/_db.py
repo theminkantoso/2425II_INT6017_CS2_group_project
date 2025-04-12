@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from ._config import config
+from main._config import config
 
 
 T = TypeVar("T")

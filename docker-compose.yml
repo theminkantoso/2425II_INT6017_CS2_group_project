@@ -1,7 +1,7 @@
 version: '3.8'
 services:
     gateway_service:
-        image: sa-backend-ocr
+        image: sa-backend-gateway
         build:
             context: ./gateway_service
             dockerfile: Dockerfile
@@ -11,6 +11,8 @@ services:
             - ./gateway_service/.env
         networks:
             - sa_cs2
+        volumes:
+            - storage:/storage
         depends_on:
             - rabbitmq
 
@@ -25,6 +27,8 @@ services:
             -   ./ocr_service/.env
         networks:
             - sa_cs2
+        volumes:
+            - storage:/storage
         depends_on:
             - rabbitmq
 
@@ -39,6 +43,8 @@ services:
             - ./pdf_service/.env
         networks:
             - sa_cs2
+        volumes:
+            - storage:/storage
         depends_on:
             - rabbitmq
 
@@ -79,6 +85,8 @@ services:
 volumes:
     sa_cs2-redis:
         driver: local
+
+    storage:
 
 networks:
     sa_cs2:

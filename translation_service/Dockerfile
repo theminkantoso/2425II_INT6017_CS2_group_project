@@ -26,7 +26,6 @@ COPY --from=poetry-base ${POETRY_VENV} ${POETRY_VENV}
 
 # Add Poetry to PATH
 ENV PATH="${PATH}:${POETRY_VENV}/bin"
-ENV GOOGLE_APPLICATION_CREDENTIALS=./credentials/fraud-detection-uni-abacdf07f6af.json
 
 WORKDIR /app
 

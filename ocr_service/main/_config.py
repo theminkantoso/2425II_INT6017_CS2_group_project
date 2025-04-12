@@ -9,9 +9,13 @@ class Config(BaseSettings):
     LOGGING_LEVEL: int = logging.INFO
 
     SQLALCHEMY_DATABASE_URI: str
-    RABBITMQ_CONNECTION: str
     SQLALCHEMY_ENGINE_OPTIONS: dict = {}
     SQLALCHEMY_ECHO: bool = False
+
+    # RabbitMQ settings
+    RABBITMQ_QUEUE: str
+    RABBITMQ_CONNECTION: str
+    RABBITMQ_QUEUE_TRANSLATE: str = ""
 
     model_config = SettingsConfigDict(
         case_sensitive=True,

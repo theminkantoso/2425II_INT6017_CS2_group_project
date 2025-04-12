@@ -39,7 +39,7 @@ class RabbitConnection:
         """
         logging.info(RabbitStatus.CONNECTING)
         try:
-            from ._config import config
+            from main._config import config
 
             self.connection = await connect_robust(config.RABBITMQ_CONNECTION)
             self.channel = await self.connection.channel(publisher_confirms=False)
@@ -66,7 +66,7 @@ class RabbitConnection:
         :param routing_key: Routing key of RabbitMQ, not required. Tip: the same as in the consumer.
         """
         if not routing_key:
-            from ._config import config
+            from main._config import config
 
             routing_key = config.RABBITMQ_QUEUE
 

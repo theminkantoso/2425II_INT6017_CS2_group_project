@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from ._config import config
+from main._config import config
 from ._rabbit import rabbit_connection
 from .middlewares import AccessLogMiddleware, DBSessionMiddleware
 
