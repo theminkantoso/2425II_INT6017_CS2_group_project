@@ -14,7 +14,8 @@ services:
         volumes:
             - storage:/storage
         depends_on:
-            - rabbitmq
+            rabbitmq:
+                condition: service_healthy
 
     ocr_service:
         image: sa-backend-ocr
@@ -30,7 +31,8 @@ services:
         volumes:
             - storage:/storage
         depends_on:
-            - rabbitmq
+            rabbitmq:
+                condition: service_healthy
 
     pdf_service:
         image: sa-backend-pdf
@@ -46,7 +48,8 @@ services:
         volumes:
             - storage:/storage
         depends_on:
-            - rabbitmq
+            rabbitmq:
+                condition: service_healthy
 
     translation_service:
         image: sa-backend-translate
@@ -60,7 +63,8 @@ services:
         networks:
             - sa_cs2
         depends_on:
-            - rabbitmq
+            rabbitmq:
+                condition: service_healthy
 
     rabbitmq:
         image: rabbitmq:4.0.8-management
@@ -72,6 +76,11 @@ services:
             - 15672:15672
         environment:
             RABBITMQ_PLUGINS: "rabbitmq_management"
+        healthcheck:
+            test: rabbitmq-diagnostics -q ping
+            interval: 30s
+            timeout: 30s
+            retries: 3
 
     redis:
         image: redis:7.4.2

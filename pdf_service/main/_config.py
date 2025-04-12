@@ -13,6 +13,10 @@ class Config(BaseSettings):
     SQLALCHEMY_ENGINE_OPTIONS: dict = {}
     SQLALCHEMY_ECHO: bool = False
 
+    # RabbitMQ settings
+    RABBITMQ_CONNECTION: str
+    RABBITMQ_QUEUE_PDF: str = ""
+
     model_config = SettingsConfigDict(
         case_sensitive=True,
         env_file_encoding="utf-8",

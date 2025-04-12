@@ -1,7 +1,6 @@
 # worker.py
 import asyncio
 import json
-from pathlib import Path
 
 import aio_pika
 from _config import config
@@ -9,7 +8,6 @@ from services import ocr_service
 
 import logging
 
-SHARED_FOLDER = Path("/storage")
 logging.basicConfig(level=logging.INFO)
 
 
@@ -23,7 +21,9 @@ async def handle_message(message: aio_pika.IncomingMessage):
         text = await ocr_service.image_to_text(image_path=str(file_path))
 
         # publish the result to RabbitMQ
-        await publish_message(message=json.dumps({"text_to_translate": text}))
+        await publish_message(
+            message=json.dumps({"text_to_translate": text, "file_path": str(file_path)})
+        )
 
 
 async def publish_message(message: str):

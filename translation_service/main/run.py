@@ -22,11 +22,15 @@ async def handle_message(message: aio_pika.IncomingMessage):
         text_to_translate = data["text_to_translate"]
         translated_text = await translation_service.translate(text=text_to_translate)
 
-        await publish_message(message=json.dumps({"translated_text": translated_text}))
+        await publish_message(
+            message=json.dumps(
+                {"translated_text": translated_text, "file_path": data["file_path"]}
+            )
+        )
 
 
 async def publish_message(message: str):
-    connection = await aio_pika.connect_robust(config.RABBITMQ_QUEUE_PDF)
+    connection = await aio_pika.connect_robust(config.RABBITMQ_CONNECTION)
     async with connection:
         channel = await connection.channel()
         await channel.default_exchange.publish(
