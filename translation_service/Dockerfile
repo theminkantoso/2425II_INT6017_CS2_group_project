@@ -45,4 +45,4 @@ COPY . /app
 EXPOSE 5003
 
 #
-CMD ["poetry", "run","uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5003"]
+CMD ["poetry", "run", "python", "./main/run.py"]
