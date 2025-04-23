@@ -95,8 +95,10 @@ services:
 
     mysql:
         image: mysql:8.0.32
+        env_file:
+            -   ./gateway_service/.env
         environment:
-            - MYSQL_ROOT_PASSWORD=123456
+            - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD_ENV}
         ports:
             - 3308:3306
         networks:
@@ -104,7 +106,7 @@ services:
         volumes:
             - sa_cs2-value:/var/lib/mysql
         healthcheck:
-            test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p123456" ]
+            test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --silent"]
             interval: 10s
             timeout: 5s
             retries: 5
