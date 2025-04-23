@@ -1,1 +1,1 @@
-__all__ = ["item", "image_cache", "translation_cache"]
+__all__ = ["item", "image_cache", "text_cache.py"]

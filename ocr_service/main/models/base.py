@@ -30,3 +30,7 @@ class TimestampMixin:
         onupdate=datetime.utcnow,
         nullable=False,
     )
+
+
+class DeleteMark:
+    is_deleted: Mapped[bool] = mapped_column(default=False, nullable=False)

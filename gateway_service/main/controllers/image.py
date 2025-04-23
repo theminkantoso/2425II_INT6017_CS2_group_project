@@ -41,6 +41,7 @@ async def upload_image(
             ),
             upload_folder=UPLOAD_FOLDER,
             rabbit_connection=rabbit_connection,
+            cache_connection=cache_connection,
         )
         if pdf_url_cache:
             return {"message": "Image already exists", "pdf_url": pdf_url_cache}
