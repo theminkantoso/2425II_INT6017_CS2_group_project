@@ -6,12 +6,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from ._config import config
 from ._rabbit import rabbit_connection
 from .middlewares import AccessLogMiddleware, DBSessionMiddleware
+from ._redis import redis
 
 api_docs_enabled = config.ENVIRONMENT == "local"
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    # Redis connection
+    await redis.ping()
+    yield
+    await redis.close()
+
+    # RabbitMQ connection
     await rabbit_connection.connect()
     yield
     await rabbit_connection.disconnect()
