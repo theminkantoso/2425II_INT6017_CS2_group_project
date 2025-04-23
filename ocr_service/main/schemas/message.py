@@ -6,3 +6,5 @@ class MessageSchema(BaseModel):
     file_path: str
     image_hash: str
     encoded_text: str | None = None
+    text_to_translate: str | None = None
+    translated_text: str | None = None

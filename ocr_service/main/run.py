@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
 from _config import config
-from main.schemas.message import MessageSchema
+from schemas.message import MessageSchema
 from models.image_cache import ImageCacheModel
 from misc.utils.encoder import encode_text
 from services import ocr_service, text_cache_service
