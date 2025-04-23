@@ -16,6 +16,8 @@ services:
         depends_on:
             rabbitmq:
                 condition: service_healthy
+            mysql:
+                condition: service_healthy
 
     ocr_service:
         image: sa-backend-ocr
@@ -91,11 +93,30 @@ services:
         volumes:
             - sa_cs2-redis:/data
 
+    mysql:
+        image: mysql:8.0.32
+        environment:
+            - MYSQL_ROOT_PASSWORD=123456
+        ports:
+            - 3308:3306
+        networks:
+            - sa_cs2
+        volumes:
+            - sa_cs2-value:/var/lib/mysql
+        healthcheck:
+            test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p123456" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
 volumes:
     sa_cs2-redis:
         driver: local
 
     storage:
+    sa_cs2-value:
 
 networks:
     sa_cs2:
+
+

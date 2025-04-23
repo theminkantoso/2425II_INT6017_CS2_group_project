@@ -4,7 +4,7 @@
 
 .venv
 Dockerfile
-#README.md
+README.md
 migrations
 scripts
 .idea
@@ -13,3 +13,4 @@ docker-compose.yml
 
 .env
 .pre-commit-config.yaml
+.env.local
