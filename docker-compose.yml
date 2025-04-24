@@ -35,6 +35,8 @@ services:
         depends_on:
             rabbitmq:
                 condition: service_healthy
+            mysql:
+                condition: service_healthy
 
     pdf_service:
         image: sa-backend-pdf
@@ -51,6 +53,8 @@ services:
             - storage:/storage
         depends_on:
             rabbitmq:
+                condition: service_healthy
+            mysql:
                 condition: service_healthy
 
     translation_service:
@@ -97,8 +101,6 @@ services:
         image: mysql:8.0.32
         env_file:
             -   ./gateway_service/.env
-        environment:
-            - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD_ENV}
         ports:
             - 3308:3306
         networks:

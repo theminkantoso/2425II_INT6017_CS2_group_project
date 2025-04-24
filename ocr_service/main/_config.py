@@ -22,6 +22,11 @@ class Config(BaseSettings):
         env_file_encoding="utf-8",
     )
 
+    # Redis settings
+    REDIS_HOST: str
+    REDIS_PORT: int = 6379
+    REDIS_DB: int = 0
+
 
 environment = os.environ.get("ENVIRONMENT", "local")
 config = Config(

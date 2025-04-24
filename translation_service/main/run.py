@@ -24,7 +24,7 @@ async def handle_message(message: aio_pika.IncomingMessage):
         translated_text = await translation_service.translate(text=text_to_translate)
 
         data.translated_text = translated_text
-        await publish_message(message=data.model_dump())
+        await publish_message(message=json.dumps(data.model_dump()))
 
 
 async def publish_message(message: str):

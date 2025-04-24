@@ -1,8 +1,9 @@
+import json
 import os
 import uuid
 from pathlib import Path
 
-from aioredis import Redis
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from main.enums import RabbitMessageType
@@ -23,7 +24,7 @@ async def publish_rabbitmq_message(
         file_path=file_path,
         image_hash=image_metadata.hash,
     )
-    await rabbit_connection.send_messages(messages=message.model_dump())
+    await rabbit_connection.send_messages(messages=json.dumps(message.model_dump()))
     return {"success": True, "filename": file_name, "file_path": file_path}
 
 

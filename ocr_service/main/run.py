@@ -5,14 +5,16 @@ from functools import partial
 
 import aio_pika
 from redis.asyncio import Redis
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
 from _config import config
+from models.text_cache import TextCacheModel
 from schemas.message import MessageSchema
 from models.image_cache import ImageCacheModel
 from misc.utils.encoder import encode_text
-from services import ocr_service, text_cache_service
+from services import ocr_service
 
 import logging
 
@@ -51,7 +53,7 @@ async def check_if_text_cached(
             )
             return cached_text, encoded_text
         else:
-            cached_text_record = await text_cache_service.get_cached_image(
+            cached_text_record = await get_cached_image(
                 session=session, input_text=encoded_text
             )
             if cached_text_record:
@@ -65,6 +67,15 @@ async def check_if_text_cached(
                 return cached_text_record.pdf_url, encoded_text
 
     return None, encoded_text
+
+
+async def get_cached_image(
+    session: AsyncSession, input_text: str
+) -> TextCacheModel | None:
+    stmt = select(TextCacheModel).where(TextCacheModel.text_encode == input_text)
+    stmt = stmt.where(TextCacheModel.is_deleted.is_(False))
+    result = await session.execute(stmt)
+    return result.scalars().first()
 
 
 async def handle_add_new_cache(
@@ -95,7 +106,7 @@ async def handle_message(message: aio_pika.IncomingMessage, redis: Redis):
             # publish the result to RabbitMQ
             data.encoded_text = encode_text
             data.text_to_translate = text
-            await publish_message(message=data.model_dump())
+            await publish_message(message=json.dumps(data.model_dump()))
 
 
 async def publish_message(message: str):
