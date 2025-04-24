@@ -89,7 +89,8 @@ async def handle_add_new_cache(
 async def handle_message(message: aio_pika.IncomingMessage, redis: Redis):
     async with message.process():
         data = message.body.decode()
-        data = MessageSchema(**json.loads(data))
+        data = json.loads(data)
+        data = MessageSchema(**data)
         logging.info(f"OCR: Received message from RabbitMQ, processing content {data}")
 
         file_path = data.file_path

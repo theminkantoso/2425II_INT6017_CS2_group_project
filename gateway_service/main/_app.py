@@ -13,15 +13,15 @@ api_docs_enabled = config.ENVIRONMENT == "local"
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    # Redis connection
+    # Setup phase
     await redis.ping()
-    yield
-    await redis.close()
-
-    # RabbitMQ connection
     await rabbit_connection.connect()
-    yield
-    await rabbit_connection.disconnect()
+    try:
+        yield
+    finally:
+        # Teardown phase
+        await redis.close()
+        await rabbit_connection.disconnect()
 
 
 app = FastAPI(
