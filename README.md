@@ -20,13 +20,13 @@ source ./venv/bin/activate
 
 ```shell
 poetry config virtualenvs.in-project true
-poetry install
+poetry install --directory <path_to_your_project>
 poetry shell
 ```
 
 ### System as is scripts
 ```shell
-python scripts/system_as_is.py
+python ./gateway_service/scripts/system_as_is.py
 ```
 Remember to install tesseract before running the script.
 
@@ -36,43 +36,45 @@ Create a database
 
 ```shell
 mysql -u root -p
-mysql> CREATE DATABASE fastapi_template_development;
+mysql> CREATE DATABASE modern_sa;
 mysql> exit
 ```
 
 In `.env` file (create one if it doesn't exist), add database uri
 
 ```
-SQLALCHEMY_DATABASE_URI=mysql+aiomysql://root:123456@127.0.0.1/fastapi_template_development
+SQLALCHEMY_DATABASE_URI=mysql+aiomysql://root:123456@127.0.0.1/modern_sa
 ```
 
 Then upgrade database
 
 ```shell
+cd gateway_service
 alembic upgrade head
 ```
 
 ### Install `pre-commit` hooks
 
 - Install `pre-commit`: https://pre-commit.com/ (should be installed globally)
-- Install `pre-commit` hooks:
-
-  ```shell
-  make install-git-hooks
-  ```
 
 ## Running
 
-Inside the virtual environment, run
+Running with docker-compose
 
 ```shell
-make run
+docker-compose up --build -d
 ```
 
-### Run tests
-
-Inside the virtual environment, run
-
-```shell
-make test
+### Environment variables
+- Create a `.env` file in each service directory (if it doesn't exist) and add the following variables:
+```env
+SQLALCHEMY_DATABASE_URI
+RABBITMQ_CONNECTION
+REDIS_HOST
+REDIS_PORT
+REDIS_DB
+MYSQL_ROOT_PASSWORD
+RABBITMQ_QUEUE_TRANSLATE
+RABBITMQ_QUEUE_PDF
+RABBITMQ_QUEUE
 ```

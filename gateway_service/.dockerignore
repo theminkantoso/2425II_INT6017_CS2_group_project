@@ -1,0 +1,16 @@
+.gitignore
+.git
+.dockerignore
+
+.venv
+Dockerfile
+README.md
+migrations
+scripts
+.idea
+poetry.lock
+docker-compose.yml
+
+.env
+.pre-commit-config.yaml
+.env.local
