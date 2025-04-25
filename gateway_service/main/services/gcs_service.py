@@ -12,7 +12,7 @@ class GCSService:
 
     async def get_presigned_url(self, file_bytes: bytes, destination_blob_name: str, content_type: Optional[str] = None) -> str:
         """
-        Upload a file to Google Cloud Storage.
+        Create a presigned url for uploading a file to Google Cloud Storage.
         
         Args:
             file_bytes: The file content in bytes
@@ -20,7 +20,7 @@ class GCSService:
             content_type: The content type of the file (e.g., 'image/jpeg')
             
         Returns:
-            The public URL of the uploaded file
+            The presigned url for uploading a file to Google Cloud Storage
         """
         blob = self.bucket.blob(destination_blob_name)
         
