@@ -1,6 +1,4 @@
-import os
 import uuid
-from pathlib import Path
 
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,16 +9,18 @@ from main.schemas.image import ImageMetadata
 from main.schemas.message import MessageSchema
 from main.services import image_service
 
+from main.services.gcs_service import GCSService
+
 
 async def publish_rabbitmq_message(
-    file_path: str, file_name: str, image_metadata: ImageMetadata, rabbit_connection
+    file_url: str, file_name: str, image_metadata: ImageMetadata, rabbit_connection
 ):
     """
     Publish a message to RabbitMQ.
     """
     message = MessageSchema(
         type=RabbitMessageType.FILE_UPLOADED,
-        file_path=file_path,
+        file_path=file_url,
         image_hash=image_metadata.hash,
     )
     await rabbit_connection.send_messages(messages=message.model_dump())
@@ -28,23 +28,26 @@ async def publish_rabbitmq_message(
 
 
 async def _proceed_to_next_step(
-    image_metadata: ImageMetadata, upload_folder: Path, rabbit_connection
+    image_metadata: ImageMetadata, rabbit_connection
 ) -> None:
     try:
-        filename = uuid.uuid4().hex + "." + image_metadata.filename.split(".")[-1]
+        filename = f"{uuid.uuid4().hex}.{image_metadata.filename.split('.')[-1]}"
 
-        # Save the uploaded file to the storage directory
-        file_path = os.path.join(upload_folder, filename)
-        with open(file_path, "wb") as f:
-            f.write(image_metadata.image_bytes)
+        # Upload to GCS
+        gcs_service = GCSService()
+        file_url = await gcs_service.get_presigned_url(
+            file_bytes=image_metadata.image_bytes,
+            destination_blob_name=f"images/{filename}",
+            content_type=f"image/{image_metadata.filename.split('.')[-1]}"
+        )
 
         await publish_rabbitmq_message(
-            file_path=file_path,
+            file_url=file_url,
             file_name=image_metadata.filename,
             image_metadata=image_metadata,
             rabbit_connection=rabbit_connection,
         )
-        return None
+        return file_url
 
     except Exception as e:
         raise InternalServerError(error_message=str(e))
@@ -53,7 +56,6 @@ async def _proceed_to_next_step(
 async def handle_cache_miss(
     session: AsyncSession,
     image_metadata: ImageMetadata,
-    upload_folder: Path,
     cache_connection: Redis,
     rabbit_connection,
 ) -> str | None:
@@ -63,12 +65,11 @@ async def handle_cache_miss(
     )
     if cached_image:
         await cache_connection.set(image_metadata.hash, cached_image.pdf_url)
-        return cached_image.pdf_url
+        return cached_image.pdf_url, None
     else:
         # Proceed to the next step
-        await _proceed_to_next_step(
+        presigned_url = await _proceed_to_next_step(
             image_metadata=image_metadata,
-            upload_folder=upload_folder,
             rabbit_connection=rabbit_connection,
         )
-        return None
+        return None, presigned_url

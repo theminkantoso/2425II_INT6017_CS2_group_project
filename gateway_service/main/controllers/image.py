@@ -8,10 +8,9 @@ from main.libs import image_lib
 from main.misc.utils import hashing
 from main._rabbit import rabbit_connection
 from main.schemas.image import ImageMetadata
+from main.services.gcs_service import GCSService
 
 router: APIRouter = APIRouter()
-UPLOAD_FOLDER = Path("/storage")
-UPLOAD_FOLDER.mkdir(exist_ok=True)
 
 
 @router.post("/api/upload-image")
@@ -34,17 +33,18 @@ async def upload_image(
         # TODO: Handle return pdf file url
         return {"message": "Image already exists", "pdf_url": pdf_url_cache}
     else:
-        pdf_url_cache = await image_lib.handle_cache_miss(
+        pdf_url_cache, gcs_presigned_url = await image_lib.handle_cache_miss(
             session=session,
             image_metadata=ImageMetadata(
                 filename=file.filename, image_bytes=image_bytes, hash=image_hash
             ),
-            upload_folder=UPLOAD_FOLDER,
             rabbit_connection=rabbit_connection,
             cache_connection=cache_connection,
         )
         if pdf_url_cache:
             return {"message": "Image already exists", "pdf_url": pdf_url_cache}
+        elif gcs_presigned_url:
+            return {"message": "GCS presigned url is created", "gcs_presigned_url": gcs_presigned_url}
 
     # try:
     #     # Generate a unique filename

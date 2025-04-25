@@ -13,6 +13,9 @@ services:
             - sa_cs2
         volumes:
             - storage:/storage
+            - ./gateway_service/gcs-config:/app/gcs-config
+        environment:
+            - GOOGLE_APPLICATION_CREDENTIALS=/app/gcs-config/credentials.json
         depends_on:
             rabbitmq:
                 condition: service_healthy
@@ -32,6 +35,9 @@ services:
             - sa_cs2
         volumes:
             - storage:/storage
+            - ./gateway_service/gcs-config:/app/gcs-config
+        environment:
+            - GOOGLE_APPLICATION_CREDENTIALS=/app/gcs-config/credentials.json
         depends_on:
             rabbitmq:
                 condition: service_healthy
