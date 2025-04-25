@@ -23,7 +23,6 @@ cryptography = "44.0.0"
 google-cloud-storage = "3.0.0"
 pytesseract = "0.3.13"
 aio-pika = "9.5.5"
-aioredis = "2.0.1"
 redis = "5.2.1"
 
 [tool.poetry.group.dev.dependencies]

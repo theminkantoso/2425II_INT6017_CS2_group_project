@@ -1,5 +1,7 @@
 from contextlib import asynccontextmanager
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -10,6 +12,17 @@ from ._redis import redis
 
 api_docs_enabled = config.ENVIRONMENT == "local"
 
+
+# Cron scheduler
+scheduler = AsyncIOScheduler()
+trigger = CronTrigger(hour=0, minute=0)
+
+# scheduler.add_job(
+#     cron_transaction_lib.update_fraud_prediction_transactions,
+#     trigger=trigger,
+#     kwargs={"ml_model_path": config.ML_MODEL_PATH},
+# )
+scheduler.start()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -22,6 +35,7 @@ async def lifespan(_: FastAPI):
         # Teardown phase
         await redis.close()
         await rabbit_connection.disconnect()
+        scheduler.shutdown()
 
 
 app = FastAPI(
