@@ -13,7 +13,9 @@ class Config(BaseSettings):
     SQLALCHEMY_ECHO: bool = False
 
     # RabbitMQ settings
-    RABBITMQ_QUEUE: str
+    RABBITMQ_QUEUE_GATEWAY_TO_OCR: str
+    RABBITMQ_QUEUE_OCR_TO_TRANSLATE: str
+    RABBITMQ_QUEUE_TRANSLATE_TO_PDF: str
     RABBITMQ_CONNECTION: str
     model_config = SettingsConfigDict(
         case_sensitive=True,

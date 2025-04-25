@@ -15,7 +15,7 @@ class Config(BaseSettings):
 
     # RabbitMQ settings
     RABBITMQ_CONNECTION: str
-    RABBITMQ_QUEUE_PDF: str = ""
+    RABBITMQ_QUEUE_TRANSLATE_TO_PDF: str
 
     model_config = SettingsConfigDict(
         case_sensitive=True,
