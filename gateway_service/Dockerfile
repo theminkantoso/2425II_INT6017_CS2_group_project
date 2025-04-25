@@ -1,6 +1,6 @@
 #
 FROM ubuntu:22.04 as base
-FROM python:3.11 as python-base
+FROM python:3.11-slim as python-base
 
 # https://python-poetry.org/docs#ci-recommendations
 ENV POETRY_VERSION=1.8.5
