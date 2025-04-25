@@ -41,12 +41,12 @@ async def _proceed_to_next_step(
             content_type=f"image/{image_metadata.filename.split('.')[-1]}"
         )
 
-        await publish_rabbitmq_message(
-            file_url=file_url,
-            file_name=image_metadata.filename,
-            image_metadata=image_metadata,
-            rabbit_connection=rabbit_connection,
-        )
+        # await publish_rabbitmq_message(
+        #     file_url=file_url,
+        #     file_name=image_metadata.filename,
+        #     image_metadata=image_metadata,
+        #     rabbit_connection=rabbit_connection,
+        # )
         return file_url
 
     except Exception as e:
