@@ -33,7 +33,7 @@ async def publish_message(message: str):
         channel = await connection.channel()
         await channel.default_exchange.publish(
             aio_pika.Message(body=message.encode()),
-            routing_key=config.RABBITMQ_QUEUE_PDF,
+            routing_key=config.RABBITMQ_QUEUE_TRANSLATE_TO_PDF,
         )
         logging.info(f"Translation: Published message {message} to RabbitMQ")
 
@@ -41,7 +41,9 @@ async def publish_message(message: str):
 async def main():
     connection = await aio_pika.connect_robust(config.RABBITMQ_CONNECTION)
     channel = await connection.channel()
-    queue = await channel.declare_queue(config.RABBITMQ_QUEUE_TRANSLATE, durable=True)
+    queue = await channel.declare_queue(
+        config.RABBITMQ_QUEUE_OCR_TO_TRANSLATE, durable=True
+    )
     await queue.consume(handle_message)
 
     await asyncio.Future()  # keep the script alive

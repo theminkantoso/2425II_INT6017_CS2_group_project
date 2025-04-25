@@ -70,7 +70,9 @@ async def main():
 
     connection = await aio_pika.connect_robust(config.RABBITMQ_CONNECTION)
     channel = await connection.channel()
-    queue = await channel.declare_queue(config.RABBITMQ_QUEUE_PDF, durable=True)
+    queue = await channel.declare_queue(
+        config.RABBITMQ_QUEUE_TRANSLATE_TO_PDF, durable=True
+    )
 
     handler = partial(handle_message, redis=redis)
     await queue.consume(handler)

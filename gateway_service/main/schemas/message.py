@@ -8,3 +8,4 @@ class MessageSchema(BaseModel):
     encoded_text: str | None = None
     text_to_translate: str | None = None
     translated_text: str | None = None
+    job_id: int | None = None

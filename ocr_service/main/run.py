@@ -116,7 +116,7 @@ async def publish_message(message: str):
         channel = await connection.channel()
         await channel.default_exchange.publish(
             aio_pika.Message(body=message.encode()),
-            routing_key=config.RABBITMQ_QUEUE_TRANSLATE,
+            routing_key=config.RABBITMQ_QUEUE_OCR_TO_TRANSLATE,
         )
         logging.info(f"OCR: Published message {message} to RabbitMQ")
 
@@ -126,7 +126,9 @@ async def main():
 
     connection = await aio_pika.connect_robust(config.RABBITMQ_CONNECTION)
     channel = await connection.channel()
-    queue = await channel.declare_queue(config.RABBITMQ_QUEUE, durable=True)
+    queue = await channel.declare_queue(
+        config.RABBITMQ_QUEUE_GATEWAY_TO_OCR, durable=True
+    )
 
     handler = partial(handle_message, redis=redis)
     text = await queue.consume(handler)

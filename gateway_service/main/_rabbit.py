@@ -68,7 +68,7 @@ class RabbitConnection:
         if not routing_key:
             from ._config import config
 
-            routing_key = config.RABBITMQ_QUEUE
+            routing_key = config.RABBITMQ_QUEUE_GATEWAY_TO_OCR
         if not self.channel:
             raise RuntimeError(RabbitStatus.NOT_CONNECTED)
 
