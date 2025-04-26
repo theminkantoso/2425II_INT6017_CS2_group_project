@@ -36,9 +36,8 @@ async def _proceed_to_next_step(
         # Upload to GCS
         gcs_service = GCSService()
         file_url = await gcs_service.get_presigned_url(
-            file_bytes=image_metadata.image_bytes,
             destination_blob_name=f"images/{filename}",
-            content_type=f"image/{image_metadata.filename.split('.')[-1]}"
+            content_type="application/octet-stream",
         )
 
         # await publish_rabbitmq_message(
