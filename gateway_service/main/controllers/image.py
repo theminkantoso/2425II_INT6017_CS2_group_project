@@ -31,7 +31,7 @@ async def upload_image(
     if pdf_url_cache:
         # If the image already exists in the cache, return the cached image
         # TODO: Handle return pdf file url
-        return {"message": "Image already exists", "pdf_url": pdf_url_cache}
+        return {"upload_status": 300, "pdf_url": pdf_url_cache} 
     else:
         pdf_url_cache, gcs_presigned_url = await image_lib.handle_cache_miss(
             session=session,
@@ -42,9 +42,9 @@ async def upload_image(
             cache_connection=cache_connection,
         )
         if pdf_url_cache:
-            return {"message": "Image already exists", "pdf_url": pdf_url_cache}
+            return {"upload_status": 300, "pdf_url": pdf_url_cache}
         elif gcs_presigned_url:
-            return {"message": "GCS presigned url is created", "gcs_presigned_url": gcs_presigned_url}
+            return {"upload_status": 301, "gcs_presigned_url": gcs_presigned_url}
 
     # try:
     #     # Generate a unique filename
