@@ -16,7 +16,7 @@ api_docs_enabled = config.ENVIRONMENT == "local"
 
 # Cron scheduler
 scheduler = AsyncIOScheduler()
-trigger = CronTrigger(hour=0, minute=0)
+trigger = CronTrigger(minute="*")
 
 scheduler.add_job(
     retry_lib.retry_failed_jobs,

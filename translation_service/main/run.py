@@ -32,6 +32,9 @@ async def get_db_session():
         yield session
 
 
+PHASE = 2
+
+
 async def publish_message(message: str):
     connection = await aio_pika.connect_robust(config.RABBITMQ_CONNECTION)
     async with connection:
@@ -63,13 +66,27 @@ async def handle_normal_flow(data: dict, session: AsyncSession):
         data.translated_text = translated_text
         await publish_message(message=json.dumps(data.model_dump()))
     except Exception:
-        await create_retry_job(session=session, data={})
+        await create_retry_job(
+            session=session,
+            data={
+                "step": PHASE,
+                "file_path": data.file_path,
+                "image_hash": data.image_hash,
+                "text_to_translate": data.text_to_translate,
+                "encoded_text": data.encoded_text,
+                "job_metadata": json.dumps(
+                    {
+                        "error": str(traceback.format_exc()),
+                        "trace": traceback.format_exc(),
+                    }
+                ),
+            },
+        )
 
 
 async def get_failed_jobs(
     session: AsyncSession, job_ids: list[int]
 ) -> list[RetryJobModel]:
-    PHASE = 2
     stmt = (
         select(RetryJobModel)
         .where(RetryJobModel.id.in_(job_ids))

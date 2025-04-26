@@ -38,6 +38,9 @@ async def get_db_session():
         yield session
 
 
+PHASE = 1
+
+
 async def check_if_text_cached(
     input_text: str, redis: Redis, image_hash: str, session: AsyncSession
 ) -> tuple[str | None, str]:
@@ -108,7 +111,6 @@ async def publish_message(message: str):
 async def get_failed_jobs(
     session: AsyncSession, job_ids: list[int]
 ) -> list[RetryJobModel]:
-    PHASE = 1
     stmt = (
         select(RetryJobModel)
         .where(RetryJobModel.id.in_(job_ids))
@@ -174,8 +176,18 @@ async def handle_normal_flow(session: AsyncSession, data: dict, redis: Redis):
             data.encoded_text = encoded_text
             data.text_to_translate = text
             await publish_message(message=json.dumps(data.model_dump()))
-    except Exception:
-        await create_retry_job(session=session, data={})
+    except Exception as e:
+        await create_retry_job(
+            session=session,
+            data={
+                "step": PHASE,
+                "file_path": data.file_path,
+                "image_hash": data.image_hash,
+                "job_metadata": json.dumps(
+                    {"error": str(e), "trace": traceback.format_exc()}
+                ),
+            },
+        )
 
 
 async def handle_message(message: aio_pika.IncomingMessage, redis: Redis):

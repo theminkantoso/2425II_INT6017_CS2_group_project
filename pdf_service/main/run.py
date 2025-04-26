@@ -36,6 +36,9 @@ async def get_db_session():
         yield session
 
 
+PHASE = 3
+
+
 async def save_to_cache(encoded_text: str, image_hash: str, pdf_url: str, redis: Redis):
     async for session in get_db_session():
         # Here you would save the PDF URL to your database
@@ -73,14 +76,26 @@ async def handle_normal_flow(session: AsyncSession, data: dict, redis: Redis):
             pdf_url=pdf_url,
             redis=redis,
         )
-    except Exception:
-        await create_retry_job(session=session, data={})
+    except Exception as e:
+        await create_retry_job(
+            session=session,
+            data={
+                "step": PHASE,
+                "file_path": data.file_path,
+                "image_hash": data.image_hash,
+                "text_to_translate": data.text_to_translate,
+                "encoded_text": data.encoded_text,
+                "translated_text": translated_text,
+                "job_metadata": json.dumps(
+                    {"error": str(e), "trace": traceback.format_exc()}
+                ),
+            },
+        )
 
 
 async def get_failed_jobs(
     session: AsyncSession, job_ids: list[int]
 ) -> list[RetryJobModel]:
-    PHASE = 3
     stmt = (
         select(RetryJobModel)
         .where(RetryJobModel.id.in_(job_ids))
