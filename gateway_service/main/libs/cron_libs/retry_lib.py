@@ -1,41 +1,40 @@
+from main import config
+from main._db import get_db_session
 from main._rabbit import rabbit_connection
-from main.enums import RabbitMessageType
-from main.models.retry_job import RetryJobModel
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from main.schemas.message import MessageSchema
 from main.services import retry_job_service
 
 
-async def retry_ocr():
-    pass
+# TODO: Cron cleanup invalid jobs
+async def retry_failed_jobs():
+    async for session in get_db_session():
+        failed_jobs = await retry_job_service.get_failed_jobs_ids_and_steps(session)
+        step_one_failed_ids, step_two_failed_ids, step_three_failed_ids = [], [], []
 
+        for job_id, step in failed_jobs:
+            match step:
+                case 1:
+                    step_one_failed_ids.append(job_id)
+                case 2:
+                    step_two_failed_ids.append(job_id)
+                case 3:
+                    step_three_failed_ids.append(job_id)
+                case _:
+                    pass
 
-async def retry_translate(job: RetryJobModel):
-    message = MessageSchema(
-        type=RabbitMessageType.FILE_UPLOADED,
-        file_path=job.file_path,
-        image_hash=job.image_hash,
-        encoded_text=job.encoded_text,
-        text_to_translate=job.text_to_translate,
-        job_id=job.id,
-    )
-    await rabbit_connection.send_messages(messages=message.model_dump())
+        if step_one_failed_ids:
+            await rabbit_connection.send_messages(
+                messages={"job_ids": step_one_failed_ids},
+                routing_key=config.RABBITMQ_QUEUE_GATEWAY_TO_OCR,
+            )
 
+        if step_two_failed_ids:
+            await rabbit_connection.send_messages(
+                messages={"job_ids": step_two_failed_ids},
+                routing_key=config.RABBITMQ_QUEUE_OCR_TO_TRANSLATE,
+            )
 
-async def retry_pdf(job: RetryJobModel):
-    pass
-
-
-async def retry_failed_jobs(session: AsyncSession):
-    failed_jobs = await retry_job_service.get_failed_jobs(session)
-    for job in failed_jobs:
-        match job.step:
-            case 1:
-                await retry_ocr()
-            case 2:
-                await retry_translate(job=job)
-            case 3:
-                await retry_pdf()
-            case _:
-                pass
+        if step_three_failed_ids:
+            await rabbit_connection.send_messages(
+                messages={"job_ids": step_three_failed_ids},
+                routing_key=config.RABBITMQ_QUEUE_TRANSLATE_TO_PDF,
+            )

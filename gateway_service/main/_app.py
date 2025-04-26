@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from ._config import config
 from ._rabbit import rabbit_connection
+from .libs.cron_libs import retry_lib
 from .middlewares import AccessLogMiddleware, DBSessionMiddleware
 from ._redis import redis
 
@@ -17,12 +18,12 @@ api_docs_enabled = config.ENVIRONMENT == "local"
 scheduler = AsyncIOScheduler()
 trigger = CronTrigger(hour=0, minute=0)
 
-# scheduler.add_job(
-#     cron_transaction_lib.update_fraud_prediction_transactions,
-#     trigger=trigger,
-#     kwargs={"ml_model_path": config.ML_MODEL_PATH},
-# )
+scheduler.add_job(
+    retry_lib.retry_failed_jobs,
+    trigger=trigger,
+)
 scheduler.start()
+
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):

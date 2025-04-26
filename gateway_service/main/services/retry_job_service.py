@@ -11,8 +11,8 @@ async def create_retry_job(session: AsyncSession, data: dict) -> RetryJobModel:
     return retry_job
 
 
-async def get_failed_jobs(session: AsyncSession) -> list[RetryJobModel]:
-    stmt = select(RetryJobModel)
+async def get_failed_jobs_ids_and_steps(session: AsyncSession) -> list[tuple[int, int]]:
+    stmt = select(RetryJobModel.id, RetryJobModel.step)
     stmt = stmt.where(RetryJobModel.is_deleted.is_(False))
     result = await session.execute(stmt)
-    return list(result.scalars().all())
+    return list(result.all())

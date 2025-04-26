@@ -1,11 +1,13 @@
 # worker.py
 import asyncio
 import json
+import traceback
 from functools import partial
 from pathlib import Path
 
 import aio_pika
 from redis.asyncio import Redis
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
@@ -16,6 +18,7 @@ from models.text_cache import TextCacheModel
 from models.image_cache import ImageCacheModel
 
 import logging
+from models.retry_job import RetryJobModel
 
 logging.basicConfig(level=logging.INFO)
 
@@ -33,36 +36,101 @@ async def get_db_session():
         yield session
 
 
-async def save_to_cache(message: MessageSchema, pdf_url: str, redis: Redis):
+async def save_to_cache(encoded_text: str, image_hash: str, pdf_url: str, redis: Redis):
     async for session in get_db_session():
         # Here you would save the PDF URL to your database
-        session.add(
-            TextCacheModel(**{"pdf_url": pdf_url, "text_encode": message.encoded_text})
-        )
-        session.add(
-            ImageCacheModel(**{"pdf_url": pdf_url, "hash_id": message.image_hash})
-        )
+        session.add(TextCacheModel(**{"pdf_url": pdf_url, "text_encode": encoded_text}))
+        session.add(ImageCacheModel(**{"pdf_url": pdf_url, "hash_id": image_hash}))
         await session.commit()
 
-        await redis.set(message.encoded_text, pdf_url)
-        await redis.set(message.image_hash, pdf_url)
+        await redis.set(encoded_text, pdf_url)
+        await redis.set(image_hash, pdf_url)
+
+
+async def create_retry_job(session: AsyncSession, data: dict) -> RetryJobModel:
+    job = RetryJobModel(**data)
+    session.add(job)
+    await session.commit()
+    return job
+
+
+async def handle_normal_flow(session: AsyncSession, data: dict, redis: Redis):
+    data = MessageSchema(**data)
+    logging.info(f"PDF: Received message from RabbitMQ, processing content {data}")
+    # your business logic here, use shared functions or DB access
+    translated_text = data.translated_text
+    image_file_path = Path(data.file_path)
+    file_uuid = image_file_path.with_suffix("")
+
+    try:
+        pdf_url = await pdf_service.text_to_pdf(
+            text=translated_text, output_filename=str(f"{file_uuid}.pdf")
+        )
+
+        await save_to_cache(
+            image_hash=data.image_hash,
+            encoded_text=data.encoded_text,
+            pdf_url=pdf_url,
+            redis=redis,
+        )
+    except Exception:
+        await create_retry_job(session=session, data={})
+
+
+async def get_failed_jobs(
+    session: AsyncSession, job_ids: list[int]
+) -> list[RetryJobModel]:
+    PHASE = 3
+    stmt = (
+        select(RetryJobModel)
+        .where(RetryJobModel.id.in_(job_ids))
+        .where(RetryJobModel.step == PHASE)
+    )
+    stmt = stmt.where(RetryJobModel.is_deleted.is_(False))
+    result = await session.execute(stmt)
+    return list(result.scalars().all())
+
+
+async def handle_retry_flow(redis: Redis, session: AsyncSession, job_ids: list[int]):
+    failed_jobs = await get_failed_jobs(session=session, job_ids=job_ids)
+    if failed_jobs:
+        for job in failed_jobs:
+            try:
+                translated_text = job.translated_text
+                image_file_path = Path(job.file_path)
+                file_uuid = image_file_path.with_suffix("")
+
+                pdf_url = await pdf_service.text_to_pdf(
+                    text=translated_text, output_filename=str(f"{file_uuid}.pdf")
+                )
+
+                await save_to_cache(
+                    image_hash=job.image_hash,
+                    encoded_text=job.encoded_text,
+                    pdf_url=pdf_url,
+                    redis=redis,
+                )
+
+                # Remove the job from the retry queue, since all the flow has been completed
+                job.is_deleted = True
+
+            except Exception as e:
+                job.job_metadata = json.dumps(
+                    {"error": str(e), "trace": traceback.format_exc()}
+                )
+
+    await session.commit()
 
 
 async def handle_message(message: aio_pika.IncomingMessage, redis: Redis):
     async with message.process():
         data = message.body.decode()
-        data = MessageSchema(**json.loads(data))
-        logging.info(f"PDF: Received message from RabbitMQ, processing content {data}")
-        # your business logic here, use shared functions or DB access
-        text_to_translate = data.translated_text
-        image_file_path = Path(data.file_path)
-        file_uuid = image_file_path.with_suffix("")
-
-        pdf_url = await pdf_service.text_to_pdf(
-            text=text_to_translate, output_filename=str(f"{file_uuid}.pdf")
-        )
-
-        await save_to_cache(message=data, pdf_url=pdf_url, redis=redis)
+        data = json.loads(data)
+        async for session in get_db_session():
+            if not (job_ids := data.get("job_ids")):
+                await handle_normal_flow(session=session, data=data, redis=redis)
+            else:
+                await handle_retry_flow(redis=redis, session=session, job_ids=job_ids)
 
 
 async def main():
