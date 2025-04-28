@@ -10,6 +10,7 @@ from main.schemas.message import MessageSchema
 from main.services import image_service
 
 from main.services.gcs_service import GCSService
+from datetime import datetime, timezone
 
 
 async def publish_rabbitmq_message(
@@ -32,12 +33,15 @@ async def _proceed_to_next_step(
 ) -> None:
     try:
         filename = f"{uuid.uuid4().hex}.{image_metadata.filename.split('.')[-1]}"
+        content_type = 'application/octet-stream'
+
+        gmt_time = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
         # Upload to GCS
         gcs_service = GCSService()
         file_url = await gcs_service.get_presigned_url(
-            destination_blob_name=f"images/{filename}",
-            content_type="application/octet-stream",
+            destination_blob_name=f"images/{image_metadata.hash}_{filename}_{gmt_time}",
+            content_type=content_type,
         )
 
         # await publish_rabbitmq_message(
