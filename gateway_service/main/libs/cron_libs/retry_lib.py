@@ -1,4 +1,3 @@
-from main import config
 from main._db import get_db_session
 from main._rabbit import rabbit_connection
 from main.services import retry_job_service
@@ -20,6 +19,8 @@ async def retry_failed_jobs():
                     step_three_failed_ids.append(job_id)
                 case _:
                     pass
+
+        from main import config
 
         if step_one_failed_ids:
             await rabbit_connection.send_messages(
