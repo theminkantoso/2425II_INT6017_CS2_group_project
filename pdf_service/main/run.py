@@ -86,6 +86,7 @@ async def handle_normal_flow(session: AsyncSession, data: dict, redis: Redis):
                 "text_to_translate": data.text_to_translate,
                 "encoded_text": data.encoded_text,
                 "translated_text": translated_text,
+                "is_file_from_gcs": data.is_file_from_gcs,
                 "job_metadata": json.dumps(
                     {"error": str(e), "trace": traceback.format_exc()}
                 ),

@@ -74,6 +74,7 @@ async def handle_normal_flow(data: dict, session: AsyncSession):
                 "image_hash": data.image_hash,
                 "text_to_translate": data.text_to_translate,
                 "encoded_text": data.encoded_text,
+                "is_file_from_gcs": data.is_file_from_gcs,
                 "job_metadata": json.dumps(
                     {
                         "error": str(traceback.format_exc()),
