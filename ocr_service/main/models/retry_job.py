@@ -10,7 +10,7 @@ class RetryJobModel(BaseModel, TimestampMixin, DeleteMark):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     # uuid: Mapped[str] = mapped_column(String(255), nullable=False)
     step: Mapped[int] = mapped_column(Integer, nullable=False)
-    file_path: Mapped[str] = mapped_column(Text, nullable=True)
+    file_url: Mapped[str] = mapped_column(Text, nullable=True)
     image_hash: Mapped[str] = mapped_column(Text, nullable=True)
     text_to_translate: Mapped[str] = mapped_column(Text, nullable=True)
     encoded_text: Mapped[str] = mapped_column(Text, nullable=True)

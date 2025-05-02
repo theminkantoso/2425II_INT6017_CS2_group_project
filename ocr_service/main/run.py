@@ -3,8 +3,10 @@ import asyncio
 import json
 import traceback
 from functools import partial
+from io import BytesIO
 
 import aio_pika
+from PIL import ImageFile, Image
 from redis.asyncio import Redis
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
@@ -16,7 +18,7 @@ from models.text_cache import TextCacheModel
 from schemas.message import MessageSchema
 from models.image_cache import ImageCacheModel
 from misc.utils.encoder import encode_text
-from services import ocr_service
+from services import ocr_service, gcp_service
 
 import logging
 
@@ -127,8 +129,8 @@ async def handle_retry_flow(session: AsyncSession, redis: Redis, job_ids: list[i
     if failed_jobs:
         for job in failed_jobs:
             try:
-                file_path = job.file_path
-                text = await ocr_service.image_to_text(image_path=str(file_path))
+                file_url = job.file_url
+                text = await ocr_service.image_to_text(image_path=str(file_url))
 
                 cached_pdf_url, encoded_text = await check_if_text_cached(
                     input_text=text,
@@ -143,7 +145,7 @@ async def handle_retry_flow(session: AsyncSession, redis: Redis, job_ids: list[i
 
                 else:
                     # publish the result to RabbitMQ
-                    # data = MessageSchema(file_path=job.file_path, image_hash=job.image_hash, encoded_text=text, text_to_translate=text)
+                    # data = MessageSchema(file_url=job.file_url, image_hash=job.image_hash, encoded_text=text, text_to_translate=text)
                     # await publish_message(message=json.dumps(data.model_dump()))
                     job.text_to_translate = text
                     job.encoded_text = encoded_text
@@ -157,12 +159,26 @@ async def handle_retry_flow(session: AsyncSession, redis: Redis, job_ids: list[i
     await session.commit()
 
 
+async def _get_image(file_url: str, is_from_gcs: bool) -> ImageFile.ImageFile:
+    if is_from_gcs:
+        image_byte = await gcp_service.download_image_from_gcs_to_memory(
+            public_url=file_url
+        )
+        image = Image.open(BytesIO(image_byte))
+    else:
+        # Load the image from the specified path
+        image = Image.open(file_url)
+    return image
+
+
 async def handle_normal_flow(session: AsyncSession, data: dict, redis: Redis):
     data = MessageSchema(**data)
-    logging.info(f"OCR: Received message from RabbitMQ, processing content {data}")
+    logging.info(
+        f"OCR: Received message from RabbitMQ, processing content {str(data.model_dump())}"
+    )
     try:
-        file_path = data.file_path
-        text = await ocr_service.image_to_text(image_path=str(file_path))
+        image = await _get_image(file_url=data.file_url, is_from_gcs=data.is_from_gcs)
+        text = await ocr_service.image_to_text(image=image)
 
         cached_pdf_url, encoded_text = await check_if_text_cached(
             input_text=text, redis=redis, image_hash=data.image_hash, session=session
@@ -181,7 +197,7 @@ async def handle_normal_flow(session: AsyncSession, data: dict, redis: Redis):
             session=session,
             data={
                 "step": PHASE,
-                "file_path": data.file_path,
+                "file_url": data.file_url,
                 "image_hash": data.image_hash,
                 "job_metadata": json.dumps(
                     {"error": str(e), "trace": traceback.format_exc()}

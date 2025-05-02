@@ -70,7 +70,7 @@ async def handle_normal_flow(data: dict, session: AsyncSession):
             session=session,
             data={
                 "step": PHASE,
-                "file_path": data.file_path,
+                "file_url": data.file_url,
                 "image_hash": data.image_hash,
                 "text_to_translate": data.text_to_translate,
                 "encoded_text": data.encoded_text,

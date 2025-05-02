@@ -62,8 +62,8 @@ async def handle_normal_flow(session: AsyncSession, data: dict, redis: Redis):
     logging.info(f"PDF: Received message from RabbitMQ, processing content {data}")
     # your business logic here, use shared functions or DB access
     translated_text = data.translated_text
-    image_file_path = Path(data.file_path)
-    file_uuid = image_file_path.with_suffix("")
+    image_file_url = Path(data.file_url)
+    file_uuid = image_file_url.with_suffix("")
 
     try:
         pdf_url = await pdf_service.text_to_pdf(
@@ -81,7 +81,7 @@ async def handle_normal_flow(session: AsyncSession, data: dict, redis: Redis):
             session=session,
             data={
                 "step": PHASE,
-                "file_path": data.file_path,
+                "file_url": data.file_url,
                 "image_hash": data.image_hash,
                 "text_to_translate": data.text_to_translate,
                 "encoded_text": data.encoded_text,
@@ -112,8 +112,8 @@ async def handle_retry_flow(redis: Redis, session: AsyncSession, job_ids: list[i
         for job in failed_jobs:
             try:
                 translated_text = job.translated_text
-                image_file_path = Path(job.file_path)
-                file_uuid = image_file_path.with_suffix("")
+                image_file_url = Path(job.file_url)
+                file_uuid = image_file_url.with_suffix("")
 
                 pdf_url = await pdf_service.text_to_pdf(
                     text=translated_text, output_filename=str(f"{file_uuid}.pdf")
