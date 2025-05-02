@@ -54,7 +54,6 @@ async def handle_image(
     cache_connection=Depends(get_redis),
     session=Depends(get_db_session),
 ):
-    # TODO: Validate image type and size
     # Get file from GCS
     image_bytes = await gcp_service.download_image_from_gcs_to_memory(
         public_url=image_url

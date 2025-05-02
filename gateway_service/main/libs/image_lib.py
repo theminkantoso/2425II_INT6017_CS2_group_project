@@ -25,6 +25,7 @@ async def publish_rabbitmq_message(
         type=RabbitMessageType.FILE_UPLOADED,
         file_url=file_url,
         image_hash=image_metadata.hash,
+        is_file_from_gcs=True if file_name is None else False,
     )
     await rabbit_connection.send_messages(messages=message.model_dump())
     return {"success": True, "filename": file_name, "file_url": file_url}
@@ -104,7 +105,7 @@ async def handle_cache_miss(
         # Proceed to the next step
         await _proceed_to_next_step(
             image_metadata=image_metadata,
-            is_file_from_gcs=True if upload_folder else False,
+            is_file_from_gcs=True if not upload_folder else False,
             rabbit_connection=rabbit_connection,
         )
         return None
