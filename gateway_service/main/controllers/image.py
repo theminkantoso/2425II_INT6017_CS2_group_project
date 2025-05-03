@@ -7,7 +7,7 @@ from main._redis import get_redis
 from main.libs import image_lib
 from main.misc.utils import hashing
 from main._rabbit import rabbit_connection
-from main.schemas.image import ImageMetadata
+from main.schemas.image import ImageMetadata, ImageRequest
 from main.services import gcp_service
 
 router: APIRouter = APIRouter()
@@ -50,13 +50,13 @@ async def upload_image(
 
 @router.post("/api/handle-image")
 async def handle_image(
-    image_url: str,
+    image_request: ImageRequest,
     cache_connection=Depends(get_redis),
     session=Depends(get_db_session),
 ):
     # Get file from GCS
     image_bytes = await gcp_service.download_image_from_gcs_to_memory(
-        public_url=image_url
+        public_url=image_request.file_url
     )
 
     # Image hash
@@ -72,7 +72,9 @@ async def handle_image(
         pdf_url_cache = await image_lib.handle_cache_miss(
             session=session,
             image_metadata=ImageMetadata(
-                file_url=image_url, image_bytes=image_bytes, hash=image_hash
+                file_url=image_request.file_url,
+                image_bytes=image_bytes,
+                hash=image_hash,
             ),
             rabbit_connection=rabbit_connection,
             cache_connection=cache_connection,

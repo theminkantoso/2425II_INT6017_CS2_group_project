@@ -27,6 +27,8 @@ class Config(BaseSettings):
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
 
+    GCS_BUCKET_NAME: str
+
 
 environment = os.environ.get("ENVIRONMENT", "local")
 config = Config(

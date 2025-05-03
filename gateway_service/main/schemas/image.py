@@ -6,3 +6,7 @@ class ImageMetadata(BaseModel):
     hash: str
     image_bytes: bytes
     file_url: str | None = None
+
+
+class ImageRequest(BaseModel):
+    file_url: str

@@ -19,10 +19,10 @@ async def download_image_from_gcs_to_memory(public_url: str) -> bytes:
                     error_message=f"Failed to download file: HTTP {response.status}"
                 )
 
-            content_type = response.headers.get("Content-Type", "")
-            if not content_type.startswith("image/"):
-                raise BadRequest(
-                    error_message=f"File is not an image (Content-Type: {content_type})"
-                )
+            # content_type = response.headers.get("Content-Type", "")
+            # if not content_type.startswith("image/"):
+            #     raise BadRequest(
+            #         error_message=f"File is not an image (Content-Type: {content_type})"
+            #     )
 
             return await response.read()

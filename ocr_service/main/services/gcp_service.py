@@ -15,8 +15,8 @@ async def download_image_from_gcs_to_memory(public_url: str) -> bytes:
             if response.status != 200:
                 raise IOError("Failed to download file")
 
-            content_type = response.headers.get("Content-Type", "")
-            if not content_type.startswith("image/"):
-                raise NotImplementedError("File is not an image")
+            # content_type = response.headers.get("Content-Type", "")
+            # if not content_type.startswith("image/"):
+            #     raise NotImplementedError("File is not an image")
 
             return await response.read()
