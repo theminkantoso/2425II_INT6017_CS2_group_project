@@ -1,14 +1,28 @@
 from contextlib import asynccontextmanager
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from ._config import config
 from ._rabbit import rabbit_connection
+from .libs.cron_libs import retry_lib
 from .middlewares import AccessLogMiddleware, DBSessionMiddleware
 from ._redis import redis
 
 api_docs_enabled = config.ENVIRONMENT == "local"
+
+
+# Cron scheduler
+scheduler = AsyncIOScheduler()
+trigger = CronTrigger(minute="*")
+
+scheduler.add_job(
+    retry_lib.retry_failed_jobs,
+    trigger=trigger,
+)
+scheduler.start()
 
 
 @asynccontextmanager
@@ -22,6 +36,7 @@ async def lifespan(_: FastAPI):
         # Teardown phase
         await redis.close()
         await rabbit_connection.disconnect()
+        scheduler.shutdown()
 
 
 app = FastAPI(

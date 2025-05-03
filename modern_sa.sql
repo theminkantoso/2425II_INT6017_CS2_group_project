@@ -36,7 +36,7 @@ CREATE TABLE `alembic_version` (
 
 LOCK TABLES `alembic_version` WRITE;
 /*!40000 ALTER TABLE `alembic_version` DISABLE KEYS */;
-INSERT INTO `alembic_version` VALUES ('2b40af49af5f');
+INSERT INTO `alembic_version` VALUES ('a6d9d3614b21');
 /*!40000 ALTER TABLE `alembic_version` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -90,6 +90,39 @@ LOCK TABLES `item` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `retry_jobs`
+--
+
+DROP TABLE IF EXISTS `retry_jobs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `retry_jobs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `step` int NOT NULL,
+  `file_url` text,
+  `image_hash` text,
+  `text_to_translate` text,
+  `encoded_text` text,
+  `translated_text` text,
+  `is_file_from_gcs` int NOT NULL,
+  `job_metadata` text,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  `is_deleted` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `retry_jobs`
+--
+
+LOCK TABLES `retry_jobs` WRITE;
+/*!40000 ALTER TABLE `retry_jobs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `retry_jobs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `text_cache`
 --
 
@@ -125,4 +158,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-04-24  9:49:50
+-- Dump completed on 2025-05-03 17:55:21

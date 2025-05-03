@@ -15,7 +15,7 @@ class Config(BaseSettings):
 
     # RabbitMQ settings
     RABBITMQ_CONNECTION: str
-    RABBITMQ_QUEUE_PDF: str = ""
+    RABBITMQ_QUEUE_TRANSLATE_TO_PDF: str
 
     model_config = SettingsConfigDict(
         case_sensitive=True,
@@ -26,6 +26,8 @@ class Config(BaseSettings):
     REDIS_HOST: str
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
+
+    GCS_BUCKET_NAME: str
 
 
 environment = os.environ.get("ENVIRONMENT", "local")
