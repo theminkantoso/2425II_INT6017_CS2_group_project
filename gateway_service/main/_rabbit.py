@@ -42,7 +42,9 @@ class RabbitConnection:
             from ._config import config
 
             self.connection = await connect_robust(config.RABBITMQ_CONNECTION)
-            self.channel = await self.connection.channel(publisher_confirms=False)
+            self.channel = await self.connection.channel(
+                publisher_confirms=True, on_return_raises=True
+            )
             logging.info(RabbitStatus.CONNECTED)
         except Exception as e:
             await self._clear()
@@ -68,21 +70,21 @@ class RabbitConnection:
         if not routing_key:
             from ._config import config
 
-            routing_key = config.RABBITMQ_QUEUE
+            routing_key = config.RABBITMQ_QUEUE_GATEWAY_TO_OCR
         if not self.channel:
             raise RuntimeError(RabbitStatus.NOT_CONNECTED)
 
         if isinstance(messages, dict):
             messages = [messages]
 
-        async with self.channel.transaction():
-            for message in messages:
-                message = Message(body=json.dumps(message).encode())
+        for message in messages:
+            message = Message(body=json.dumps(message).encode())
 
-                await self.channel.default_exchange.publish(
-                    message,
-                    routing_key=routing_key,
-                )
+            await self.channel.default_exchange.publish(
+                message,
+                routing_key=routing_key,
+                mandatory=True,
+            )
 
 
 rabbit_connection = RabbitConnection()
