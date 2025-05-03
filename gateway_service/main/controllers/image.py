@@ -8,7 +8,7 @@ from main.libs import image_lib
 from main.misc.utils import hashing
 from main._rabbit import rabbit_connection
 from main.schemas.image import ImageMetadata, ImageRequest
-from main.services import gcp_service
+from main.services import gcs_service
 
 router: APIRouter = APIRouter()
 UPLOAD_FOLDER = Path("/storage")
@@ -55,7 +55,7 @@ async def handle_image(
     session=Depends(get_db_session),
 ):
     # Get file from GCS
-    image_bytes = await gcp_service.download_image_from_gcs_to_memory(
+    image_bytes = await gcs_service.download_image_from_gcs_to_memory(
         public_url=image_request.file_url
     )
 
