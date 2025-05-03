@@ -13,7 +13,7 @@ from sqlalchemy.orm import sessionmaker
 
 from _config import config
 from schemas.message import MessageSchema
-from services import pdf_service
+from services import pdf_service, gcp_service
 from models.text_cache import TextCacheModel
 from models.image_cache import ImageCacheModel
 
@@ -62,13 +62,21 @@ async def handle_normal_flow(session: AsyncSession, data: dict, redis: Redis):
     logging.info(f"PDF: Received message from RabbitMQ, processing content {data}")
     # your business logic here, use shared functions or DB access
     translated_text = data.translated_text
-    image_file_url = Path(data.file_url)
-    file_uuid = image_file_url.with_suffix("")
 
     try:
-        pdf_url = await pdf_service.text_to_pdf(
-            text=translated_text, output_filename=str(f"{file_uuid}.pdf")
-        )
+        if data.is_file_from_gcs:
+            pdf_file = await pdf_service.text_to_pdf_in_memory(text=translated_text)
+            pdf_url = await gcp_service.upload_pdf_from_memory(
+                bucket_name="sample",
+                blob_name="sample.pdf",
+                pdf_bytes=pdf_file.getvalue(),
+            )
+        else:
+            image_file_url = Path(data.file_url)
+            file_uuid = image_file_url.with_suffix("")
+            pdf_url = await pdf_service.text_to_pdf(
+                text=translated_text, output_filename=str(f"{file_uuid}.pdf")
+            )
 
         await save_to_cache(
             image_hash=data.image_hash,

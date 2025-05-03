@@ -1,7 +1,5 @@
 import aiohttp
 
-from main.misc.exceptions import BadRequest
-
 
 async def download_image_from_gcs_to_memory(public_url: str) -> bytes:
     """
@@ -15,14 +13,10 @@ async def download_image_from_gcs_to_memory(public_url: str) -> bytes:
     async with aiohttp.ClientSession() as session:
         async with session.get(public_url) as response:
             if response.status != 200:
-                raise BadRequest(
-                    error_message=f"Failed to download file: HTTP {response.status}"
-                )
+                raise IOError("Failed to download file")
 
             content_type = response.headers.get("Content-Type", "")
             if not content_type.startswith("image/"):
-                raise BadRequest(
-                    error_message=f"File is not an image (Content-Type: {content_type})"
-                )
+                raise NotImplementedError("File is not an image")
 
             return await response.read()

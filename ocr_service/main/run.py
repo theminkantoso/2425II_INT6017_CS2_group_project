@@ -165,6 +165,9 @@ async def handle_retry_flow(session: AsyncSession, redis: Redis, job_ids: list[i
                     job.encoded_text = encoded_text
                     job.step = NEXT_PHASE
 
+            except NotImplementedError:
+                job.is_deleted = True
+
             except Exception as e:
                 job.job_metadata = json.dumps(
                     {"error": str(e), "trace": traceback.format_exc()}
@@ -196,6 +199,9 @@ async def handle_normal_flow(session: AsyncSession, data: dict, redis: Redis):
             data.encoded_text = encoded_text
             data.text_to_translate = text
             await publish_message(message=json.dumps(data.model_dump()))
+
+    except NotImplementedError:
+        pass
     except Exception as e:
         await create_retry_job(
             session=session,
