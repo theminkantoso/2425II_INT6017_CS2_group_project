@@ -121,13 +121,22 @@ async def handle_retry_flow(redis: Redis, session: AsyncSession, job_ids: list[i
     if failed_jobs:
         for job in failed_jobs:
             try:
-                translated_text = job.translated_text
-                image_file_url = Path(job.file_url)
-                file_uuid = image_file_url.with_suffix("")
-
-                pdf_url = await pdf_service.text_to_pdf(
-                    text=translated_text, output_filename=str(f"{file_uuid}.pdf")
-                )
+                if job.is_file_from_gcs:
+                    pdf_file = await pdf_service.text_to_pdf_in_memory(
+                        text=job.translated_text
+                    )
+                    pdf_url = await gcp_service.upload_pdf_from_memory(
+                        bucket_name=config.GCS_BUCKET_NAME,
+                        blob_name=f"{str(uuid.uuid4())}.pdf",
+                        pdf_bytes=pdf_file.getvalue(),
+                    )
+                else:
+                    image_file_url = Path(job.file_url)
+                    file_uuid = image_file_url.with_suffix("")
+                    pdf_url = await pdf_service.text_to_pdf(
+                        text=job.translated_text,
+                        output_filename=str(f"{file_uuid}.pdf"),
+                    )
 
                 await save_to_cache(
                     image_hash=job.image_hash,
@@ -162,7 +171,7 @@ async def main():
     redis = Redis(host=config.REDIS_HOST, port=config.REDIS_PORT, decode_responses=True)
 
     connection = await aio_pika.connect_robust(config.RABBITMQ_CONNECTION)
-    channel = await connection.channel()
+    channel = await connection.channel(publisher_confirms=True)
     queue = await channel.declare_queue(
         config.RABBITMQ_QUEUE_TRANSLATE_TO_PDF, durable=True
     )

@@ -102,10 +102,11 @@ async def create_retry_job(session: AsyncSession, data: dict) -> RetryJobModel:
 async def publish_message(message: str):
     connection = await aio_pika.connect_robust(config.RABBITMQ_CONNECTION)
     async with connection:
-        channel = await connection.channel()
+        channel = await connection.channel(publisher_confirms=True)
         await channel.default_exchange.publish(
             aio_pika.Message(body=message.encode()),
             routing_key=config.RABBITMQ_QUEUE_OCR_TO_TRANSLATE,
+            mandatory=True,
         )
         logging.info(f"OCR: Published message {message} to RabbitMQ")
 
@@ -232,7 +233,7 @@ async def main():
     redis = Redis(host=config.REDIS_HOST, port=config.REDIS_PORT, decode_responses=True)
 
     connection = await aio_pika.connect_robust(config.RABBITMQ_CONNECTION)
-    channel = await connection.channel()
+    channel = await connection.channel(publisher_confirms=True)
     queue = await channel.declare_queue(
         config.RABBITMQ_QUEUE_GATEWAY_TO_OCR, durable=True
     )

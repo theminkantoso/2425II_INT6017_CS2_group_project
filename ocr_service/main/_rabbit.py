@@ -42,7 +42,7 @@ class RabbitConnection:
             from main._config import config
 
             self.connection = await connect_robust(config.RABBITMQ_CONNECTION)
-            self.channel = await self.connection.channel(publisher_confirms=False)
+            self.channel = await self.connection.channel(publisher_confirms=True)
             logging.info(RabbitStatus.CONNECTED)
         except Exception as e:
             await self._clear()
@@ -81,8 +81,7 @@ class RabbitConnection:
                 message = Message(body=json.dumps(message).encode())
 
                 await self.channel.default_exchange.publish(
-                    message,
-                    routing_key=routing_key,
+                    message, routing_key=routing_key, mandatory=True
                 )
 
 
