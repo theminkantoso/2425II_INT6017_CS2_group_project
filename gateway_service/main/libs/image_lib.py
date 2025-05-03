@@ -40,7 +40,7 @@ async def _proceed_to_next_step(
         # Upload to GCS
         gcs_service = GCSService()
         file_url = await gcs_service.get_presigned_url(
-            destination_blob_name=f"images/{filename}_{gmt_time}",
+            destination_blob_name=f"images/{gmt_time}_{filename}",
             content_type=content_type,
         )
 
