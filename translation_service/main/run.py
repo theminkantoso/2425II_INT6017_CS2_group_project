@@ -38,7 +38,9 @@ PHASE = 2
 async def publish_message(message: str):
     connection = await aio_pika.connect_robust(config.RABBITMQ_CONNECTION)
     async with connection:
-        channel = await connection.channel(publisher_confirms=True)
+        channel = await connection.channel(
+            publisher_confirms=True, on_return_raises=True
+        )
         await channel.default_exchange.publish(
             aio_pika.Message(body=message.encode()),
             routing_key=config.RABBITMQ_QUEUE_TRANSLATE_TO_PDF,
@@ -133,7 +135,7 @@ async def handle_message(message: aio_pika.IncomingMessage):
 
 async def main():
     connection = await aio_pika.connect_robust(config.RABBITMQ_CONNECTION)
-    channel = await connection.channel(publisher_confirms=True)
+    channel = await connection.channel(publisher_confirms=True, on_return_raises=True)
     queue = await channel.declare_queue(
         config.RABBITMQ_QUEUE_OCR_TO_TRANSLATE, durable=True
     )

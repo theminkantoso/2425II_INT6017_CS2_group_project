@@ -171,7 +171,7 @@ async def main():
     redis = Redis(host=config.REDIS_HOST, port=config.REDIS_PORT, decode_responses=True)
 
     connection = await aio_pika.connect_robust(config.RABBITMQ_CONNECTION)
-    channel = await connection.channel(publisher_confirms=True)
+    channel = await connection.channel(publisher_confirms=True, on_return_raises=True)
     queue = await channel.declare_queue(
         config.RABBITMQ_QUEUE_TRANSLATE_TO_PDF, durable=True
     )
