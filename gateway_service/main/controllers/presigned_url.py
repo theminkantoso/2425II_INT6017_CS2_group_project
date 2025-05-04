@@ -40,7 +40,11 @@ async def generate_presigned_url(
         if pdf_url_cache:
             return {"message": "Image already exists", "pdf_url": pdf_url_cache}
 
-    gcs_presigned_url = await image_lib.generate_presigned_url(
+    gcs_presigned_url, job_uuid = await image_lib.generate_presigned_url(
         file_name=file.filename,
     )
-    return {"upload_status": 301, "gcs_presigned_url": gcs_presigned_url}
+    return {
+        "upload_status": 301,
+        "gcs_presigned_url": gcs_presigned_url,
+        "job_uuid": job_uuid,
+    }

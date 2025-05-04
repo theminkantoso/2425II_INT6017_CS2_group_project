@@ -16,6 +16,14 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
+import sentry_sdk
+
+sentry_sdk.init(
+    dsn=config.SENTRY_DSN,
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    send_default_pii=True,
+)
 
 # Initialize the async engine and session
 async_engine = create_async_engine(config.SQLALCHEMY_DATABASE_URI, echo=True)
@@ -84,6 +92,7 @@ async def handle_normal_flow(data: dict, session: AsyncSession):
                         "trace": traceback.format_exc(),
                     }
                 ),
+                "job_uuid": data.job_uuid,
             },
         )
 

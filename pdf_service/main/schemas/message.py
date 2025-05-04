@@ -9,3 +9,4 @@ class MessageSchema(BaseModel):
     text_to_translate: str | None = None
     translated_text: str | None = None
     is_file_from_gcs: bool = False
+    job_uuid: str

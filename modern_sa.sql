@@ -31,16 +31,6 @@ CREATE TABLE `alembic_version` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `alembic_version`
---
-
-LOCK TABLES `alembic_version` WRITE;
-/*!40000 ALTER TABLE `alembic_version` DISABLE KEYS */;
-INSERT INTO `alembic_version` VALUES ('a6d9d3614b21');
-/*!40000 ALTER TABLE `alembic_version` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `image_cache`
 --
 
@@ -58,15 +48,6 @@ CREATE TABLE `image_cache` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `image_cache`
---
-
-LOCK TABLES `image_cache` WRITE;
-/*!40000 ALTER TABLE `image_cache` DISABLE KEYS */;
-/*!40000 ALTER TABLE `image_cache` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `item`
 --
 
@@ -79,15 +60,6 @@ CREATE TABLE `item` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `item`
---
-
-LOCK TABLES `item` WRITE;
-/*!40000 ALTER TABLE `item` DISABLE KEYS */;
-/*!40000 ALTER TABLE `item` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `retry_jobs`
@@ -109,18 +81,10 @@ CREATE TABLE `retry_jobs` (
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   `is_deleted` tinyint(1) NOT NULL,
+  `job_uuid` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `retry_jobs`
---
-
-LOCK TABLES `retry_jobs` WRITE;
-/*!40000 ALTER TABLE `retry_jobs` DISABLE KEYS */;
-/*!40000 ALTER TABLE `retry_jobs` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `text_cache`
@@ -137,17 +101,8 @@ CREATE TABLE `text_cache` (
   `updated_at` datetime NOT NULL,
   `is_deleted` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `text_cache`
---
-
-LOCK TABLES `text_cache` WRITE;
-/*!40000 ALTER TABLE `text_cache` DISABLE KEYS */;
-/*!40000 ALTER TABLE `text_cache` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -158,4 +113,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-03 17:55:21
+-- Dump completed on 2025-05-04 22:16:39
