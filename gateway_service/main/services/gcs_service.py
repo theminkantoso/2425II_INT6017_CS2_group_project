@@ -1,4 +1,5 @@
 import aiohttp
+import uuid
 from google.cloud import storage
 from typing import Optional
 from datetime import timedelta
@@ -15,7 +16,7 @@ class GCSService:
 
     async def get_presigned_url(
         self, destination_blob_name: str, content_type: Optional[str] = None
-    ) -> str:
+    ) -> tuple[str, str]:
         """
         Create a presigned url for uploading a file to Google Cloud Storage.
 
@@ -28,15 +29,19 @@ class GCSService:
         """
         blob = self.bucket.blob(destination_blob_name)
 
+        job_uuid = str(uuid.uuid4())
         url = blob.generate_signed_url(
             version="v4",
             expiration=timedelta(minutes=15),
             method="PUT",
             content_type=content_type,
+            headers={
+                "x-goog-meta-uuid": job_uuid,
+            },
         )
 
         # Return the public URL
-        return url
+        return url, job_uuid
 
     async def delete_file(self, blob_name: str) -> None:
         """Delete a file from Google Cloud Storage."""

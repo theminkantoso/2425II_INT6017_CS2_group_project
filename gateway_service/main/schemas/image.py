@@ -10,3 +10,4 @@ class ImageMetadata(BaseModel):
 
 class ImageRequest(BaseModel):
     file_url: str
+    job_uuid: str
