@@ -35,6 +35,8 @@ class Config(BaseSettings):
     PUSHER_SECRET: str
     PUSHER_CLUSTER: str
 
+    SENTRY_DSN: str
+
 
 environment = os.environ.get("ENVIRONMENT", "local")
 config = Config(

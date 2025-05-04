@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 
+import sentry_sdk
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from fastapi import FastAPI
@@ -39,6 +40,12 @@ async def lifespan(_: FastAPI):
         scheduler.shutdown()
 
 
+sentry_sdk.init(
+    dsn=config.SENTRY_DSN,
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    send_default_pii=True,
+)
 app = FastAPI(
     redoc_url=None, docs_url="/docs" if api_docs_enabled else None, lifespan=lifespan
 )

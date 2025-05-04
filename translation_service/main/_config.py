@@ -17,6 +17,8 @@ class Config(BaseSettings):
     RABBITMQ_QUEUE_OCR_TO_TRANSLATE: str
     RABBITMQ_QUEUE_TRANSLATE_TO_PDF: str
 
+    SENTRY_DSN: str
+
     model_config = SettingsConfigDict(
         case_sensitive=True,
         env_file_encoding="utf-8",
