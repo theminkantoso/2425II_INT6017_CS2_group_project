@@ -116,6 +116,21 @@ async def handle_cache_miss(
         return None
 
 
+async def check_cache_from_db(
+    session: AsyncSession,
+    image_metadata: ImageMetadata,
+    cache_connection: Redis,
+) -> str | None:
+    # Get from database
+    cached_image = await image_service.get_cached_image(
+        session=session, input_hash=image_metadata.hash
+    )
+    if cached_image:
+        await cache_connection.set(image_metadata.hash, cached_image.pdf_url)
+        return cached_image.pdf_url
+    return None
+
+
 async def generate_presigned_url(file_name: str) -> str:
     try:
         filename = f"{uuid.uuid4().hex}.{file_name.split('.')[-1]}"
