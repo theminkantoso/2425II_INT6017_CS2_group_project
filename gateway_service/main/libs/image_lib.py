@@ -1,6 +1,4 @@
-import os
 import uuid
-from pathlib import Path
 
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,6 +8,13 @@ from main.misc.exceptions import InternalServerError
 from main.schemas.image import ImageMetadata
 from main.schemas.message import MessageSchema
 from main.services import image_service
+
+from main.services.gcs_service import GCSService
+from datetime import datetime, timezone
+
+
+import os
+from pathlib import Path
 
 
 async def publish_rabbitmq_message(
@@ -109,3 +114,37 @@ async def handle_cache_miss(
             rabbit_connection=rabbit_connection,
         )
         return None
+
+
+async def check_cache_from_db(
+    session: AsyncSession,
+    image_metadata: ImageMetadata,
+    cache_connection: Redis,
+) -> str | None:
+    # Get from database
+    cached_image = await image_service.get_cached_image(
+        session=session, input_hash=image_metadata.hash
+    )
+    if cached_image:
+        await cache_connection.set(image_metadata.hash, cached_image.pdf_url)
+        return cached_image.pdf_url
+    return None
+
+
+async def generate_presigned_url(file_name: str) -> str:
+    try:
+        filename = f"{uuid.uuid4().hex}.{file_name.split('.')[-1]}"
+        content_type = "application/octet-stream"
+
+        gmt_time = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+
+        # Upload to GCS
+        gcs_service = GCSService()
+        file_url = await gcs_service.get_presigned_url(
+            destination_blob_name=f"images/{gmt_time}_{filename}",
+            content_type=content_type,
+        )
+        return file_url
+
+    except Exception as e:
+        raise InternalServerError(error_message=str(e))
