@@ -162,3 +162,4 @@ cython_debug/
 
 # Google Cloud credentials
 */gcs-config/*.json
+scripts
