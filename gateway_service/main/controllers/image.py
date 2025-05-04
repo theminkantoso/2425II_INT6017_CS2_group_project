@@ -64,20 +64,20 @@ async def handle_image(
 
     # Check if the image already exists in the cache
     pdf_url_cache = await cache_connection.get(image_hash)
-    if pdf_url_cache:
-        # If the image already exists in the cache, return the cached image
-        # TODO: Handle return pdf file url
-        return {"message": "Image already exists", "pdf_url": pdf_url_cache}
-    else:
+    if not pdf_url_cache:
         pdf_url_cache = await image_lib.handle_cache_miss(
             session=session,
             image_metadata=ImageMetadata(
                 file_url=image_request.file_url,
                 image_bytes=image_bytes,
                 hash=image_hash,
+                job_uuid=image_request.job_uuid,
             ),
             rabbit_connection=rabbit_connection,
             cache_connection=cache_connection,
         )
-        if pdf_url_cache:
-            return {"message": "Image already exists", "pdf_url": pdf_url_cache}
+    if pdf_url_cache:
+        await image_lib.send_pusher_message(
+            job_uuid=image_request.job_uuid, pdf_url_cache=pdf_url_cache
+        )
+        return {"message": "Image already exists", "pdf_url": pdf_url_cache}

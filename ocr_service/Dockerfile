@@ -27,6 +27,11 @@ COPY --from=poetry-base ${POETRY_VENV} ${POETRY_VENV}
 # Add Poetry to PATH
 ENV PATH="${PATH}:${POETRY_VENV}/bin"
 
+# Install tesseract
+RUN apt-get update
+RUN apt-get -y install tesseract-ocr
+RUN apt-get -y install libtesseract-dev
+
 WORKDIR /app
 
 # Copy Dependencies
@@ -37,11 +42,6 @@ RUN poetry check
 
 # Install Dependencies
 RUN poetry install --no-interaction --no-cache --without dev
-
-# Install tesseract
-RUN apt-get update
-RUN apt-get -y install tesseract-ocr
-RUN apt-get -y install libtesseract-dev
 
 # Copy Application
 COPY . /app

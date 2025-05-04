@@ -6,6 +6,7 @@ class ImageMetadata(BaseModel):
     hash: str
     image_bytes: bytes
     file_url: str | None = None
+    job_uuid: str | None = None
 
 
 class ImageRequest(BaseModel):

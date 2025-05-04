@@ -7,6 +7,7 @@ from io import BytesIO
 
 import aio_pika
 from PIL import ImageFile, Image
+from pusher import pusher
 from redis.asyncio import Redis
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
@@ -138,6 +139,20 @@ async def _get_image(file_url: str, is_from_gcs: bool) -> ImageFile.ImageFile:
     return image
 
 
+async def send_pusher_message(job_uuid: str, pdf_url_cache: str) -> None:
+    pusher_client = pusher.Pusher(
+        app_id=config.PUSHER_APP_ID,
+        key=config.PUSHER_KEY,
+        secret=config.PUSHER_SECRET,
+        cluster=config.PUSHER_CLUSTER,
+        ssl=True,
+    )
+
+    message = {"file_url": pdf_url_cache}
+    EVENT_NAME = "message"
+    pusher_client.trigger(job_uuid, EVENT_NAME, message)
+
+
 async def handle_retry_flow(session: AsyncSession, redis: Redis, job_ids: list[int]):
     NEXT_PHASE = 2
     failed_jobs = await get_failed_jobs(session=session, job_ids=job_ids)
@@ -156,14 +171,12 @@ async def handle_retry_flow(session: AsyncSession, redis: Redis, job_ids: list[i
                     session=session,
                 )
                 if cached_pdf_url:
-                    # TODO: Handle cached scenario
+                    await send_pusher_message(
+                        job_uuid=job.job_uuid, pdf_url_cache=cached_pdf_url
+                    )
                     job.is_deleted = True
-                    logging.info(f"Text is already cached in Redis: {cached_pdf_url}")
 
                 else:
-                    # publish the result to RabbitMQ
-                    # data = MessageSchema(file_url=job.file_url, image_hash=job.image_hash, encoded_text=text, text_to_translate=text)
-                    # await publish_message(message=json.dumps(data.model_dump()))
                     job.text_to_translate = text
                     job.encoded_text = encoded_text
                     job.step = NEXT_PHASE
@@ -194,9 +207,9 @@ async def handle_normal_flow(session: AsyncSession, data: dict, redis: Redis):
             input_text=text, redis=redis, image_hash=data.image_hash, session=session
         )
         if cached_pdf_url:
-            # TODO: Handle cached scenario
-            logging.info(f"Text is already cached in Redis: {cached_pdf_url}")
-
+            await send_pusher_message(
+                job_uuid=data.job_uuid, pdf_url_cache=cached_pdf_url
+            )
         else:
             # publish the result to RabbitMQ
             data.encoded_text = encoded_text
@@ -216,6 +229,7 @@ async def handle_normal_flow(session: AsyncSession, data: dict, redis: Redis):
                 "job_metadata": json.dumps(
                     {"error": str(e), "trace": traceback.format_exc()}
                 ),
+                "job_uuid": data.job_uuid,
             },
         )
 

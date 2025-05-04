@@ -7,6 +7,7 @@ from functools import partial
 from pathlib import Path
 
 import aio_pika
+from pusher import pusher
 from redis.asyncio import Redis
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
@@ -58,6 +59,20 @@ async def create_retry_job(session: AsyncSession, data: dict) -> RetryJobModel:
     return job
 
 
+async def send_pusher_message(job_uuid: str, pdf_url_cache: str) -> None:
+    pusher_client = pusher.Pusher(
+        app_id=config.PUSHER_APP_ID,
+        key=config.PUSHER_KEY,
+        secret=config.PUSHER_SECRET,
+        cluster=config.PUSHER_CLUSTER,
+        ssl=True,
+    )
+
+    message = {"file_url": pdf_url_cache}
+    EVENT_NAME = "message"
+    pusher_client.trigger(job_uuid, EVENT_NAME, message)
+
+
 async def handle_normal_flow(session: AsyncSession, data: dict, redis: Redis):
     data = MessageSchema(**data)
     logging.info(f"PDF: Received message from RabbitMQ, processing content {data}")
@@ -85,6 +100,8 @@ async def handle_normal_flow(session: AsyncSession, data: dict, redis: Redis):
             pdf_url=pdf_url,
             redis=redis,
         )
+        await send_pusher_message(job_uuid=data.job_uuid, pdf_url_cache=pdf_url)
+
     except Exception as e:
         await create_retry_job(
             session=session,
@@ -99,6 +116,7 @@ async def handle_normal_flow(session: AsyncSession, data: dict, redis: Redis):
                 "job_metadata": json.dumps(
                     {"error": str(e), "trace": traceback.format_exc()}
                 ),
+                "job_uuid": data.job_uuid,
             },
         )
 
@@ -144,6 +162,8 @@ async def handle_retry_flow(redis: Redis, session: AsyncSession, job_ids: list[i
                     pdf_url=pdf_url,
                     redis=redis,
                 )
+
+                await send_pusher_message(job_uuid=job.job_uuid, pdf_url_cache=pdf_url)
 
                 # Remove the job from the retry queue, since all the flow has been completed
                 job.is_deleted = True

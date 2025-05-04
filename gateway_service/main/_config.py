@@ -29,6 +29,12 @@ class Config(BaseSettings):
 
     MYSQL_ROOT_PASSWORD_ENV: str = ""
 
+    # Pusher settings
+    PUSHER_APP_ID: str
+    PUSHER_KEY: str
+    PUSHER_SECRET: str
+    PUSHER_CLUSTER: str
+
 
 environment = os.environ.get("ENVIRONMENT", "local")
 config = Config(

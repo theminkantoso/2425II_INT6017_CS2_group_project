@@ -84,6 +84,7 @@ async def handle_normal_flow(data: dict, session: AsyncSession):
                         "trace": traceback.format_exc(),
                     }
                 ),
+                "job_uuid": data.job_uuid,
             },
         )
 

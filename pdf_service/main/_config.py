@@ -29,6 +29,12 @@ class Config(BaseSettings):
 
     GCS_BUCKET_NAME: str
 
+    # Pusher settings
+    PUSHER_APP_ID: str
+    PUSHER_KEY: str
+    PUSHER_SECRET: str
+    PUSHER_CLUSTER: str
+
 
 environment = os.environ.get("ENVIRONMENT", "local")
 config = Config(

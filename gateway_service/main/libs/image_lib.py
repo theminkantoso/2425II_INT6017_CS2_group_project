@@ -1,8 +1,10 @@
 import uuid
 
+from pusher import pusher
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from main import config
 from main.enums import RabbitMessageType
 from main.misc.exceptions import InternalServerError
 from main.schemas.image import ImageMetadata
@@ -31,6 +33,7 @@ async def publish_rabbitmq_message(
         file_url=file_url,
         image_hash=image_metadata.hash,
         is_file_from_gcs=True if file_name is None else False,
+        job_uuid=image_metadata.job_uuid,
     )
     await rabbit_connection.send_messages(messages=message.model_dump())
     return {"success": True, "filename": file_name, "file_url": file_url}
@@ -129,6 +132,20 @@ async def check_cache_from_db(
         await cache_connection.set(image_metadata.hash, cached_image.pdf_url)
         return cached_image.pdf_url
     return None
+
+
+async def send_pusher_message(job_uuid: str, pdf_url_cache: str) -> None:
+    pusher_client = pusher.Pusher(
+        app_id=config.PUSHER_APP_ID,
+        key=config.PUSHER_KEY,
+        secret=config.PUSHER_SECRET,
+        cluster=config.PUSHER_CLUSTER,
+        ssl=True,
+    )
+
+    message = {"file_url": pdf_url_cache}
+    EVENT_NAME = "message"
+    pusher_client.trigger(job_uuid, EVENT_NAME, message)
 
 
 async def generate_presigned_url(file_name: str) -> tuple[str, str]:
