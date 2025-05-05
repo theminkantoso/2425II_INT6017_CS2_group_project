@@ -2,7 +2,6 @@
 import asyncio
 import json
 import traceback
-import uuid
 from functools import partial
 from pathlib import Path
 
@@ -95,7 +94,7 @@ async def handle_normal_flow(session: AsyncSession, data: dict, redis: Redis):
             pdf_file = await pdf_service.text_to_pdf_in_memory(text=translated_text)
             pdf_url = await gcp_service.upload_pdf_from_memory(
                 bucket_name=config.GCS_BUCKET_NAME,
-                blob_name=f"{str(uuid.uuid4())}.pdf",
+                blob_name=f"{data.job_uuid}.pdf",
                 pdf_bytes=pdf_file.getvalue(),
             )
         else:
@@ -156,7 +155,7 @@ async def handle_retry_flow(redis: Redis, session: AsyncSession, job_ids: list[i
                     )
                     pdf_url = await gcp_service.upload_pdf_from_memory(
                         bucket_name=config.GCS_BUCKET_NAME,
-                        blob_name=f"{str(uuid.uuid4())}.pdf",
+                        blob_name=f"{job.job_uuid}.pdf",
                         pdf_bytes=pdf_file.getvalue(),
                     )
                 else:
