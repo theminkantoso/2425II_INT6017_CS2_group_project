@@ -35,6 +35,7 @@ class Config(BaseSettings):
     PUSHER_SECRET: str
     PUSHER_CLUSTER: str
 
+    GCS_BUCKET_NAME: str
     SENTRY_DSN: str
 
 
