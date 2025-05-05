@@ -84,3 +84,4 @@ PUSHER_SECRET
 PUSHER_CLUSTER
 SENTRY_DSN
 ```
+Also, get the Google Cloud Storage json credential file, name as `credentials.json` and add to the `pdf_service` folder and `gateway_service/gcs-config` folder.
