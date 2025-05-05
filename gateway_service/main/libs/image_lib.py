@@ -150,14 +150,15 @@ async def send_pusher_message(job_uuid: str, pdf_url_cache: str) -> None:
 
 async def generate_presigned_url(file_name: str) -> tuple[str, str]:
     try:
-        filename = f"{uuid.uuid4().hex}.{file_name.split('.')[-1]}"
+        job_uuid = str(uuid.uuid4())
+        filename = f"{job_uuid}.{file_name.split('.')[-1]}"
         content_type = "application/octet-stream"
 
         gmt_time = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
         # Upload to GCS
         gcs_service = GCSService()
-        file_url, job_uuid = await gcs_service.get_presigned_url(
+        file_url = await gcs_service.get_presigned_url(
             destination_blob_name=f"images/{gmt_time}_{filename}",
             content_type=content_type,
         )
