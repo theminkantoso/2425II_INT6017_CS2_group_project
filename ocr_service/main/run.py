@@ -63,7 +63,7 @@ async def check_if_text_cached(
         logging.info(f"Text is already cached in Redis: {cached_text}")
         await handle_add_new_cache(
             image_hash=image_hash,
-            pdf_url=cached_text.pdf_url,
+            pdf_url=cached_text,
             redis=redis,
             session=session,
         )
@@ -98,8 +98,11 @@ async def handle_add_new_cache(
     image_hash: str, pdf_url: str, redis: Redis, session: AsyncSession
 ):
     await redis.set(image_hash, pdf_url)
-    session.add(ImageCacheModel(**{"hash_id": image_hash, "pdf_url": pdf_url}))
-    await session.commit()
+    try:
+        session.add(ImageCacheModel(**{"hash_id": image_hash, "pdf_url": pdf_url}))
+        await session.commit()
+    except Exception:
+        pass
 
 
 async def create_retry_job(session: AsyncSession, data: dict) -> RetryJobModel:
